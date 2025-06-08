@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قارئ الباركود - WUILT</title>
+    <title>قارئ الباركود - ElgendyPro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-color: #4a6bff;
-            --wuilt-color: #5d3be8; /* لون WUILT الرئيسي */
+            --elgendypro-color: #2c7be5; /* لون ElgendyPro الرئيسي */
             --success-color: #28a745;
             --error-color: #dc3545;
             --warning-color: #ffc107;
@@ -36,11 +36,11 @@
             background: white;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-top: 5px solid var(--wuilt-color);
+            border-top: 5px solid var(--elgendypro-color);
         }
         
         .header h1 {
-            color: var(--wuilt-color);
+            color: var(--elgendypro-color);
             margin-bottom: 10px;
         }
         
@@ -51,7 +51,7 @@
             background: black;
             border-radius: 10px;
             overflow: hidden;
-            border: 3px solid var(--wuilt-color);
+            border: 3px solid var(--elgendypro-color);
         }
         
         #reader {
@@ -75,7 +75,7 @@
         .scan-box {
             width: 80%;
             height: 200px;
-            border: 3px solid var(--wuilt-color);
+            border: 3px solid var(--elgendypro-color);
             border-radius: 10px;
             position: relative;
         }
@@ -86,9 +86,9 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background: rgba(93, 59, 232, 0.7); /* لون WUILT مع شفافية */
+            background: rgba(44, 123, 229, 0.7); /* لون ElgendyPro مع شفافية */
             animation: scan 2s infinite linear;
-            box-shadow: 0 0 10px var(--wuilt-color);
+            box-shadow: 0 0 10px var(--elgendypro-color);
         }
         
         @keyframes scan {
@@ -110,7 +110,7 @@
         
         button {
             padding: 12px 20px;
-            background: var(--wuilt-color);
+            background: var(--elgendypro-color);
             color: white;
             border: none;
             border-radius: 5px;
@@ -127,7 +127,7 @@
         button:hover {
             opacity: 0.9;
             transform: translateY(-2px);
-            box-shadow: 0 3px 8px rgba(93, 59, 232, 0.3);
+            box-shadow: 0 3px 8px rgba(44, 123, 229, 0.3);
         }
         
         button:disabled {
@@ -175,7 +175,7 @@
         }
         
         #manualInput:focus {
-            border-color: var(--wuilt-color);
+            border-color: var(--elgendypro-color);
             outline: none;
         }
         
@@ -190,7 +190,7 @@
         
         .status-loading {
             background: #e7f1ff;
-            color: var(--wuilt-color);
+            color: var(--elgendypro-color);
         }
         
         .status-ready {
@@ -211,18 +211,18 @@
             max-width: 500px;
             word-break: break-word;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            border-top: 3px solid var(--wuilt-color);
+            border-top: 3px solid var(--elgendypro-color);
         }
         
-        .wuilt-brand {
+        .elgendypro-brand {
             text-align: center;
             margin-top: 30px;
             color: #666;
             font-size: 14px;
         }
         
-        .wuilt-brand a {
-            color: var(--wuilt-color);
+        .elgendypro-brand a {
+            color: var(--elgendypro-color);
             text-decoration: none;
             font-weight: bold;
         }
@@ -243,7 +243,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>قارئ الباركود - WUILT</h1>
+            <h1>قارئ الباركود - ElgendyPro</h1>
             <p>امسح الباركود تلقائياً أو أدخل الرمز يدوياً</p>
         </div>
         
@@ -284,13 +284,13 @@
         <div id="result" class="result-container" style="display:none;">
             <h3>نتيجة المسح</h3>
             <div id="resultContent"></div>
-            <button onclick="openInWuilt()" style="width:100%;margin-top:15px;">
-                🔍 البحث في WUILT
+            <button onclick="openInElgendyPro()" style="width:100%;margin-top:15px;">
+                🔍 البحث في ElgendyPro
             </button>
         </div>
         
-        <div class="wuilt-brand">
-            أداة مقدمة من <a href="https://www.wuilt.com" target="_blank">WUILT</a>
+        <div class="elgendypro-brand">
+            أداة مقدمة من <a href="https://www.elgendypro.com" target="_blank">ElgendyPro</a>
         </div>
     </div>
 
@@ -460,7 +460,7 @@
                     });
                     
                     flashIcon.textContent = isFlashOn ? '💡' : '🔦';
-                    flashBtn.style.backgroundColor = isFlashOn ? '#f39c12' : '#5d3be8';
+                    flashBtn.style.backgroundColor = isFlashOn ? '#f39c12' : '#2c7be5';
                     
                     // تحسين الرؤية في الإضاءة المنخفضة
                     if (isFlashOn) {
@@ -500,12 +500,12 @@
             localStorage.setItem('lastBarcodeScan', code);
         }
         
-        // فتح نتيجة البحث في WUILT
-        function openInWuilt() {
+        // فتح نتيجة البحث في ElgendyPro
+        function openInElgendyPro() {
             const code = lastResult || manualInput.value.trim();
             if (code) {
-                // البحث في موقع WUILT
-                window.open(`https://www.wuilt.com/search?q=${encodeURIComponent(code)}`, '_blank');
+                // البحث في موقع ElgendyPro
+                window.open(`https://www.elgendypro.com/search?q=${encodeURIComponent(code)}`, '_blank');
             } else {
                 showAlert('❗ لا يوجد باركود للبحث عنه');
             }
