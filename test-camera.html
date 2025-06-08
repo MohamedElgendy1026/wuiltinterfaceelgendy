@@ -248,6 +248,9 @@
             <button onclick="openResult()" style="width:100%;margin-top:15px;">
                 عرض التفاصيل
             </button>
+            <button onclick="searchOnElgendyPro()" style="width:100%;margin-top:10px;background-color:#6c757d;">
+                البحث على elgendypro.com
+            </button>
         </div>
     </div>
 
@@ -462,6 +465,16 @@
             if (code) {
                 // يمكنك تغيير الرابط حسب احتياجاتك
                 window.open(`https://www.wuilt.com/search?q=${encodeURIComponent(code)}`, '_blank');
+            }
+        }
+        
+        // وظيفة جديدة للبحث على موقع elgendypro.com
+        function searchOnElgendyPro() {
+            const code = lastResult || manualInput.value.trim();
+            if (code) {
+                window.open(`https://www.elgendypro.com/search?q=${encodeURIComponent(code)}`, '_blank');
+            } else {
+                showAlert('❗ لا يوجد باركود للبحث عنه');
             }
         }
         
