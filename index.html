@@ -16,12 +16,6 @@
 
     h2 {
       color: #222;
-      margin-bottom: 10px;
-    }
-
-    #video-wrapper {
-      position: relative;
-      display: inline-block;
     }
 
     #video {
@@ -29,30 +23,20 @@
       max-width: 320px;
       border: 2px solid #333;
       border-radius: 10px;
+      margin-top: 10px;
     }
 
-    #scan-box {
-      position: absolute;
-      top: 30%;
-      left: 10%;
-      width: 80%;
-      height: 40%;
-      border: 2px dashed red;
-      box-sizing: border-box;
-      pointer-events: none;
-    }
-
-    #info, #manual {
+    #info {
       margin-top: 15px;
       font-size: 16px;
       color: #444;
     }
 
-    #manual input {
+    input {
       padding: 8px;
       width: 80%;
       max-width: 300px;
-      margin-top: 10px;
+      margin-top: 15px;
       font-size: 16px;
     }
 
@@ -65,21 +49,14 @@
 </head>
 <body>
   <h2>امسح الباركود أو اكتبه يدويًا</h2>
-  <div id="video-wrapper">
-    <video id="video" autoplay muted></video>
-    <div id="scan-box"></div>
-  </div>
+  <video id="video" autoplay muted playsinline></video>
+  <div id="info">جاري تحميل الكاميرا...</div>
 
-  <div id="info">جارٍ تشغيل الكاميرا...</div>
+  <button onclick="toggleFlash()">تشغيل/إيقاف الفلاش 🔦</button><br>
 
-  <button onclick="toggleTorch()">تشغيل/إيقاف الفلاش 🔦</button>
-
-  <div id="manual">
-    <p>مش قادر تمسح؟ اكتبه هنا:</p>
-    <input type="text" id="manualInput" placeholder="أدخل الباركود">
-    <br>
-    <button onclick="manualSearch()">بحث يدوي 🔍</button>
-  </div>
+  <input type="text" id="manualInput" placeholder="أدخل الباركود يدويًا">
+  <br>
+  <button onclick="manualSearch()">بحث يدوي 🔍</button>
 
   <audio id="beep" src="https://www.soundjay.com/buttons/sounds/beep-07.mp3" preload="auto"></audio>
 
@@ -88,4 +65,62 @@
     const info = document.getElementById('info');
     const beep = document.getElementById('beep');
     let currentStream;
-    let t
+    let track;
+
+    const codeReader = new ZXing.BrowserMultiFormatReader();
+
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { exact: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    }).then(stream => {
+      video.srcObject = stream;
+      currentStream = stream;
+      track = stream.getVideoTracks()[0];
+      info.textContent = "📷 الكاميرا شغالة، امسح الباركود...";
+
+      codeReader.decodeFromVideoElement(video, (result, err) => {
+        if (result) {
+          const barcode = result.text;
+          beep.play();
+          info.textContent = `✅ تم قراءة الباركود: ${barcode}`;
+          codeReader.reset();
+          setTimeout(() => {
+            window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(barcode)}`;
+          }, 1000);
+        }
+      });
+    }).catch(err => {
+      console.error("Camera error:", err);
+      info.textContent = "❌ تعذر تشغيل الكاميرا";
+    });
+
+    function toggleFlash() {
+      if (track) {
+        const capabilities = track.getCapabilities();
+        if (capabilities.torch) {
+          const settings = track.getSettings();
+          track.applyConstraints({
+            advanced: [{ torch: !settings.torch }]
+          });
+        } else {
+          alert("⚠️ جهازك لا يدعم الفلاش");
+        }
+      } else {
+        alert("📷 شغل الكاميرا الأول قبل تشغيل الفلاش");
+      }
+    }
+
+    function manualSearch() {
+      const input = document.getElementById('manualInput').value.trim();
+      if (input) {
+        window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(input)}`;
+      } else {
+        alert("اكتب الباركود الأول");
+      }
+    }
+  </script>
+</body>
+</html>
