@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قارئ الباركود لموقع Wuilt</title>
+    <title>قارئ الباركود - عرض المنتج</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -195,24 +194,59 @@
             color: var(--error-color);
         }
         
-        .config-section {
+        .result-container {
             margin: 20px auto;
-            max-width: 500px;
             padding: 20px;
             background: white;
             border-radius: 10px;
+            max-width: 500px;
+            word-break: break-word;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-top: 3px solid var(--main-color);
         }
         
-        #wuiltUrl {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #ddd;
+        /* أنماط عرض المنتج */
+        .product-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            display: block;
+            margin: 0 auto 15px;
+        }
+        
+        .product-title {
+            color: var(--main-color);
+            margin-top: 10px;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        
+        .product-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #e74c3c;
+            text-align: center;
+        }
+        
+        .product-stock {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .alert {
+            padding: 10px;
             border-radius: 5px;
             margin-bottom: 15px;
-            font-family: 'Tajawal', sans-serif;
-            transition: border 0.3s;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffeeba;
         }
         
         @media (max-width: 600px) {
@@ -231,16 +265,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>قارئ الباركود لموقع Wuilt</h1>
-            <p>امسح الباركود وسيتم البحث عنه في موقعك</p>
-        </div>
-        
-        <div class="config-section">
-            <h3>إعدادات الموقع</h3>
-            <input type="url" id="wuiltUrl" placeholder="أدخل رابط موقعك على Wuilt (مثال: https://example.wuilt.com)">
-            <button onclick="saveConfig()" class="btn-success" style="width:100%;">
-                💾 حفظ الإعدادات
-            </button>
+            <h1>قارئ الباركود - عرض المنتج</h1>
+            <p>امسح باركود المنتج لعرض تفاصيله</p>
         </div>
         
         <div class="scanner-container">
@@ -266,33 +292,51 @@
             <h3>الإدخال اليدوي</h3>
             <input type="text" id="manualInput" placeholder="أدخل رقم الباركود هنا...">
             <button onclick="manualSearch()" class="btn-success" style="width:100%;">
-                🔍 بحث في الموقع
+                🔍 بحث عن المنتج
             </button>
+        </div>
+        
+        <div id="result" class="result-container" style="display:none;">
+            <h3>تفاصيل المنتج</h3>
+            <div id="resultContent"></div>
         </div>
     </div>
 
     <script>
         // المتغيرات العامة
         const statusEl = document.getElementById('status');
+        const resultEl = document.getElementById('result');
+        const resultContent = document.getElementById('resultContent');
         const manualInput = document.getElementById('manualInput');
-        const wuiltUrlInput = document.getElementById('wuiltUrl');
         
         let html5QrScanner;
+        let lastResult = '';
         let isScanning = false;
-        let wuiltBaseUrl = '';
         
-        // تهيئة الصفحة
-        function initPage() {
-            // تحميل الإعدادات المحفوظة
-            const savedUrl = localStorage.getItem('wuiltScannerUrl');
-            if (savedUrl) {
-                wuiltUrlInput.value = savedUrl;
-                wuiltBaseUrl = savedUrl;
+        // بيانات المنتجات (يمكن استبدالها باتصال API حقيقي)
+        const productsDatabase = {
+            "123456789012": {
+                name: "ساعة ذكية ماركة X",
+                price: 599,
+                stock: 15,
+                description: "ساعة ذكية بشاشة لمس مقاس 1.4 بوصة، مقاومة للماء",
+                image: "https://via.placeholder.com/150?text=ساعة+X"
+            },
+            "987654321098": {
+                name: "سماعات لاسلكية",
+                price: 299,
+                stock: 8,
+                description: "سماعات بلوتوث مع عزل للضوضاء",
+                image: "https://via.placeholder.com/150?text=سماعات"
+            },
+            "456789123456": {
+                name: "هاتف ذكي 2023",
+                price: 3499,
+                stock: 5,
+                description: "أحدث هاتف ذكي بكاميرا 108 ميجابكسل",
+                image: "https://via.placeholder.com/150?text=هاتف+2023"
             }
-            
-            // بدء الماسح الضوئي
-            initScanner();
-        }
+        };
         
         // بدء الماسح الضوئي
         async function initScanner() {
@@ -332,17 +376,21 @@
         }
         
         // عند نجاح المسح
-        function onScanSuccess(decodedText) {
-            playBeep();
-            searchOnWuilt(decodedText);
-            
-            // إيقاف مؤقت للمسح
-            setTimeout(() => {
-                if (html5QrScanner && isScanning) {
-                    html5QrScanner.pause();
-                    setStatus('ready', '⏸ تم الإيقاف المؤقت');
-                }
-            }, 1000);
+        function onScanSuccess(decodedText, decodedResult) {
+            if (decodedText !== lastResult) {
+                lastResult = decodedText;
+                playBeep();
+                showResult(decodedText);
+                setStatus('ready', '✅ تم العثور على منتج!');
+                
+                // إيقاف مؤقت للمسح
+                setTimeout(() => {
+                    if (html5QrScanner && isScanning) {
+                        html5QrScanner.pause();
+                        setStatus('ready', '⏸ تم الإيقاف المؤقت');
+                    }
+                }, 1000);
+            }
         }
         
         // عند حدوث خطأ في المسح
@@ -368,60 +416,52 @@
         function manualSearch() {
             const code = manualInput.value.trim();
             if (code) {
-                searchOnWuilt(code);
+                showResult(code);
             } else {
                 showAlert('❗ الرجاء إدخال الباركود أولاً');
             }
         }
         
-        // البحث في موقع Wuilt
-        function searchOnWuilt(barcode) {
-            if (!wuiltBaseUrl) {
-                showAlert('❗ الرجاء إدخال رابط موقع Wuilt أولاً');
-                wuiltUrlInput.focus();
-                return;
+        // عرض نتيجة البحث
+        async function showResult(barcode) {
+            try {
+                // في الواقع هنا ستقوم بالاتصال بالخادم الخاص بك
+                // ولكننا سنستخدم قاعدة البيانات المحلية كمثال
+                const product = productsDatabase[barcode];
+                
+                if (product) {
+                    resultContent.innerHTML = `
+                        <img src="${product.image}" alt="${product.name}" class="product-image">
+                        <h3 class="product-title">${product.name}</h3>
+                        <p class="product-price">السعر: ${product.price} جنيه</p>
+                        <p>الكمية المتاحة: <span class="product-stock">${product.stock}</span></p>
+                        <p><strong>الوصف:</strong></p>
+                        <div style="background:#f8f9fa; padding:10px; border-radius:5px;">
+                            ${product.description}
+                        </div>
+                    `;
+                } else {
+                    resultContent.innerHTML = `
+                        <div class="alert alert-warning">
+                            <p>❗ لم يتم العثور على منتج مطابق للباركود: <strong>${barcode}</strong></p>
+                            <p>الرجاء التأكد من صحة الباركود</p>
+                        </div>
+                    `;
+                }
+                
+                resultEl.style.display = 'block';
+                manualInput.value = barcode;
+                lastResult = barcode;
+                
+            } catch (error) {
+                console.error('خطأ في عرض النتيجة:', error);
+                resultContent.innerHTML = `
+                    <div class="alert alert-warning">
+                        <p>❗ حدث خطأ أثناء البحث عن المنتج</p>
+                    </div>
+                `;
+                resultEl.style.display = 'block';
             }
-            
-            // تنظيف الرمز من أي أحرف غير مرغوب فيها
-            const cleanBarcode = barcode.replace(/[^a-zA-Z0-9]/g, '');
-            
-            // إنشاء رابط البحث
-            let searchUrl = wuiltBaseUrl;
-            if (!searchUrl.endsWith('/')) {
-                searchUrl += '/';
-            }
-            
-            // إضافة الباركود إلى رابط البحث
-            // يمكنك تعديل هذا الجزء حسب هيكل URL في موقعك
-            searchUrl += `search?q=${encodeURIComponent(cleanBarcode)}`;
-            
-            // فتح الرابط في نافذة جديدة
-            window.open(searchUrl, '_blank');
-            
-            setStatus('ready', `✅ تم البحث عن: ${cleanBarcode}`);
-            manualInput.value = cleanBarcode;
-        }
-        
-        // حفظ الإعدادات
-        function saveConfig() {
-            const url = wuiltUrlInput.value.trim();
-            if (!url) {
-                showAlert('❗ الرجاء إدخال رابط الموقع أولاً');
-                return;
-            }
-            
-            // إضافة البروتوكول إذا لم يكن موجوداً
-            let fullUrl = url;
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                fullUrl = 'https://' + url;
-            }
-            
-            // حفظ الإعدادات
-            localStorage.setItem('wuiltScannerUrl', fullUrl);
-            wuiltBaseUrl = fullUrl;
-            wuiltUrlInput.value = fullUrl;
-            
-            showAlert('✅ تم حفظ الإعدادات بنجاح');
         }
         
         // وظائف مساعدة
@@ -475,6 +515,7 @@
         function handleInitError(error) {
             console.error('خطأ التهيئة:', error);
             setStatus('error', `❌ ${getErrorMessage(error)}`);
+            enableManualInput();
         }
         
         function getErrorMessage(error) {
@@ -491,13 +532,18 @@
                    'حدث خطأ غير متوقع في تشغيل الكاميرا';
         }
         
+        function enableManualInput() {
+            manualInput.disabled = false;
+            manualInput.placeholder = 'استخدم الإدخال اليدوي بسبب مشكلة الكاميرا';
+        }
+        
         // مستمعات الأحداث
         manualInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') manualSearch();
         });
         
-        // بدء الصفحة عند التحميل
-        window.addEventListener('load', initPage);
+        // بدء الماسح عند تحميل الصفحة
+        window.addEventListener('load', initScanner);
     </script>
 </body>
 </html>
