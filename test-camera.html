@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>اختبار الكاميرا</title>
+</head>
+<body>
+  <h2>اختبار تشغيل الكاميرا 📷</h2>
+  <video id="video" width="300" autoplay></video>
+
+  <script>
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => {
+        document.getElementById("video").srcObject = stream;
+      })
+      .catch(err => {
+        alert("❌ الكاميرا مش شغالة أو مفيش إذن: " + err.message);
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
