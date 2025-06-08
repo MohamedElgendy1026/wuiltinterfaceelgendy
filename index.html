@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قارئ الباركود المتقدم | الجندي برو</title>
+    <title>قارئ الباركود المتقدم | WUILT</title>
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@latest/dist/html5-qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4CAF50;
-            --secondary: #2E7D32;
-            --dark: #1B5E20;
-            --light: #C8E6C9;
-            --error: #f44336;
-            --warning: #ff9800;
+            --primary: #4a6bff;
+            --secondary: #3a5bef;
+            --dark: #1a2b8f;
+            --light: #e6e9ff;
+            --success: #28a745;
+            --error: #dc3545;
+            --warning: #ffc107;
         }
         
         body {
             font-family: 'Tajawal', sans-serif;
-            background: #f5f5f5;
+            background: #f8f9fa;
             margin: 0;
             padding: 20px;
             color: #333;
@@ -139,6 +140,7 @@
         button:disabled {
             background: #aaa;
             cursor: not-allowed;
+            opacity: 0.7;
         }
         
         .btn-flash {
@@ -148,6 +150,10 @@
         
         .btn-switch {
             background: #2196F3;
+        }
+        
+        .btn-success {
+            background: var(--success);
         }
         
         #cameraSelect {
@@ -196,7 +202,7 @@
         
         .ready {
             background: var(--light);
-            color: var(--secondary);
+            color: var(--dark);
         }
         
         .error {
@@ -222,6 +228,17 @@
             font-size: 1.2rem;
             margin: 15px 0;
             word-break: break-word;
+        }
+        
+        .camera-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.2rem;
+            text-align: center;
+            z-index: 5;
         }
         
         @media (max-width: 600px) {
@@ -250,7 +267,9 @@
         </div>
         
         <div class="scanner-container">
-            <div id="reader"></div>
+            <div id="reader">
+                <div class="camera-loading">جاري تحميل الكاميرا...</div>
+            </div>
             <div class="scan-overlay">
                 <div class="scan-box">
                     <div class="scan-line"></div>
@@ -275,7 +294,7 @@
         <div class="manual-section">
             <h3>أو أدخل الباركود يدويًا</h3>
             <input type="text" id="manualInput" placeholder="اكتب رقم الباركود هنا">
-            <button onclick="manualSearch()" style="margin-top: 10px;">
+            <button onclick="manualSearch()" class="btn-success" style="margin-top: 10px; width: 100%;">
                 🔍 بحث في الموقع
             </button>
         </div>
@@ -297,6 +316,7 @@
         const switchBtn = document.getElementById('switchBtn');
         const flashIcon = document.getElementById('flashIcon');
         const manualInput = document.getElementById('manualInput');
+        const cameraLoadingEl = document.querySelector('.camera-loading');
         
         // ===== المتغيرات العامة =====
         let html5QrScanner = null;
@@ -306,11 +326,11 @@
         let isFlashOn = false;
         let lastResult = '';
         let beepSound = null;
+        let backCameraId = null;
         
         // ===== تهيئة الصوت =====
         function initBeepSound() {
             try {
-                // إنشاء صوت بدون استخدام ملفات خارجية
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
@@ -337,11 +357,14 @@
             if (!beepSound) return;
             
             try {
+                beepSound.oscillator = beepSound.context.createOscillator();
+                beepSound.oscillator.type = 'sine';
+                beepSound.oscillator.frequency.value = 800;
+                beepSound.oscillator.connect(beepSound.gainNode);
+                
                 beepSound.oscillator.start();
                 setTimeout(() => {
                     beepSound.oscillator.stop();
-                    // إعادة إنشاء الصوت لضمان عمله في المرة القادمة
-                    initBeepSound();
                 }, 200);
             } catch (error) {
                 console.error('تعذر تشغيل الصوت:', error);
@@ -352,6 +375,7 @@
         async function initScanner() {
             try {
                 setStatus('loading', '⏳ جاري إعداد الماسح...');
+                cameraLoadingEl.style.display = 'block';
                 
                 // 1. تهيئة الصوت
                 initBeepSound();
@@ -361,27 +385,45 @@
                     throw new Error('المتصفح لا يدعم الوصول إلى الكاميرا');
                 }
                 
-                // 3. الحصول على الكاميرات المتاحة
+                // 3. الحصول على الكاميرات المتاحة مع تحديد الخلفية أولاً
                 cameras = await Html5Qrcode.getCameras();
                 if (!cameras || cameras.length === 0) {
                     throw new Error('لا توجد كاميرات متاحة');
                 }
                 
+                // تحديد الكاميرا الخلفية أولاً
+                backCameraId = findBackCamera();
+                
                 // 4. إعداد واجهة المستخدم للكاميرات
                 setupCameraUI();
                 
-                // 5. بدء الماسح بالكاميرا الأولى
-                await startScanner(cameras[currentCameraIndex].id);
+                // 5. بدء الماسح بالكاميرا المفضلة (الخلفية أولاً)
+                const preferredCameraId = backCameraId || cameras[0].id;
+                await startScanner(preferredCameraId);
                 
             } catch (error) {
                 handleInitError(error);
             }
         }
         
+        // ===== البحث عن الكاميرا الخلفية =====
+        function findBackCamera() {
+            for (let i = 0; i < cameras.length; i++) {
+                const camera = cameras[i];
+                if (camera.label.toLowerCase().includes('back') || 
+                    camera.label.toLowerCase().includes('rear')) {
+                    currentCameraIndex = i;
+                    return camera.id;
+                }
+            }
+            return null;
+        }
+        
         // ===== بدء الماسح =====
         async function startScanner(cameraId) {
             try {
                 setStatus('loading', '📷 جاري تشغيل الكاميرا...');
+                cameraLoadingEl.style.display = 'block';
                 
                 // إيقاف الماسح الحالي إذا كان يعمل
                 if (html5QrScanner && html5QrScanner.isScanning) {
@@ -424,6 +466,7 @@
                         handleScanError(errorMessage);
                     }
                 ).then(() => {
+                    cameraLoadingEl.style.display = 'none';
                     setStatus('ready', '✅ جاهز للمسح - قرب الباركود من الكاميرا');
                     setupFlashControl();
                 });
@@ -460,7 +503,7 @@
         // ===== التوجيه إلى المنتج =====
         function redirectToProduct(barcode) {
             setTimeout(() => {
-                window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(barcode)}`;
+                window.location.href = `https://www.wuilt.com/search?q=${encodeURIComponent(barcode)}`;
             }, 1500);
         }
         
@@ -493,6 +536,12 @@
                     
                     flashIcon.textContent = isFlashOn ? '💡' : '🔦';
                     flashBtn.style.backgroundColor = isFlashOn ? '#ff8f00' : '#ffc107';
+                    
+                    // تحسين الرؤية في الإضاءة المنخفضة
+                    const videoElement = document.querySelector('#reader video');
+                    if (videoElement) {
+                        videoElement.style.filter = isFlashOn ? 'brightness(1.2) contrast(1.2)' : 'none';
+                    }
                 }
             } catch (error) {
                 console.error('خطأ التحكم في الفلاش:', error);
@@ -537,6 +586,12 @@
                 
                 if (currentTrack && currentTrack.getCapabilities().torch) {
                     flashBtn.disabled = false;
+                    
+                    // تشغيل الفلاش تلقائياً في الإضاءة المنخفضة
+                    const brightness = window.matchMedia('(prefers-color-scheme: dark)');
+                    if (brightness.matches) {
+                        toggleFlash();
+                    }
                 }
             }
         }
@@ -544,7 +599,9 @@
         // ===== إيقاف الماسح بأمان =====
         async function safeStopScanner() {
             try {
-                await html5QrScanner.stop();
+                if (html5QrScanner && html5QrScanner.isScanning) {
+                    await html5QrScanner.stop();
+                }
             } catch (error) {
                 console.error('خطأ إيقاف الماسح:', error);
             }
@@ -585,6 +642,7 @@
             console.error('خطأ التهيئة:', error);
             setStatus('error', `❌ ${getErrorMessage(error)}`);
             enableManualInput();
+            cameraLoadingEl.style.display = 'none';
         }
         
         // ===== معالجة أخطاء البدء =====
@@ -592,6 +650,7 @@
             console.error('خطأ بدء الماسح:', error);
             setStatus('error', `❌ ${getErrorMessage(error)}`);
             enableManualInput();
+            cameraLoadingEl.style.display = 'none';
         }
         
         // ===== الحصول على رسالة الخطأ =====
