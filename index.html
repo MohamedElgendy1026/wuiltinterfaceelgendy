@@ -3,69 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قارئ الباركود المتقدم | WUILT</title>
-    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@latest/dist/html5-qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <title>قارئ الباركود - WUILT</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4a6bff;
-            --secondary: #3a5bef;
-            --dark: #1a2b8f;
-            --light: #e6e9ff;
-            --success: #28a745;
-            --error: #dc3545;
-            --warning: #ffc107;
+            --primary-color: #4a6bff;
+            --wuilt-color: #5d3be8; /* لون WUILT الرئيسي */
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --warning-color: #ffc107;
         }
         
         body {
-            font-family: 'Tajawal', sans-serif;
+            font-family: 'Tajawal', Arial, sans-serif;
             background: #f8f9fa;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             color: #333;
         }
         
         .container {
             max-width: 100%;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 0 auto;
         }
         
         .header {
             text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--light);
+            margin-bottom: 30px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--wuilt-color);
         }
         
         .header h1 {
-            color: var(--dark);
-            margin: 0;
-            font-size: 1.8rem;
+            color: var(--wuilt-color);
+            margin-bottom: 10px;
         }
         
         .scanner-container {
             position: relative;
             margin: 0 auto;
             max-width: 500px;
-            background: #000;
-            border-radius: 12px;
+            background: black;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            border: 3px solid var(--wuilt-color);
         }
         
         #reader {
             width: 100%;
             position: relative;
-        }
-        
-        #reader video {
-            width: 100%;
-            height: auto;
-            display: block;
         }
         
         .scan-overlay {
@@ -84,10 +75,9 @@
         .scan-box {
             width: 80%;
             height: 200px;
-            border: 4px solid var(--primary);
+            border: 3px solid var(--wuilt-color);
             border-radius: 10px;
             position: relative;
-            box-shadow: 0 0 0 2000px rgba(0,0,0,0.4);
         }
         
         .scan-line {
@@ -96,9 +86,9 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background: var(--primary);
+            background: rgba(93, 59, 232, 0.7); /* لون WUILT مع شفافية */
             animation: scan 2s infinite linear;
-            box-shadow: 0 0 10px var(--primary);
+            box-shadow: 0 0 10px var(--wuilt-color);
         }
         
         @keyframes scan {
@@ -112,149 +102,140 @@
             justify-content: center;
             gap: 10px;
             margin: 20px 0;
-            padding: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         button {
-            padding: 12px 25px;
-            background: var(--primary);
+            padding: 12px 20px;
+            background: var(--wuilt-color);
             color: white;
             border: none;
-            border-radius: 30px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 1rem;
-            font-family: 'Tajawal';
+            font-size: 16px;
             display: flex;
             align-items: center;
             gap: 8px;
             transition: all 0.3s;
-            min-width: 150px;
-            justify-content: center;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 500;
         }
         
         button:hover {
-            background: var(--secondary);
+            opacity: 0.9;
             transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(93, 59, 232, 0.3);
         }
         
         button:disabled {
-            background: #aaa;
+            background: #cccccc;
             cursor: not-allowed;
-            opacity: 0.7;
-        }
-        
-        .btn-flash {
-            background: var(--warning);
-            color: #000;
-        }
-        
-        .btn-switch {
-            background: #2196F3;
+            box-shadow: none;
         }
         
         .btn-success {
-            background: var(--success);
+            background: var(--success-color);
+        }
+        
+        .btn-warning {
+            background: var(--warning-color);
+            color: #333;
         }
         
         #cameraSelect {
-            padding: 12px 15px;
-            border-radius: 30px;
-            border: 2px solid #ddd;
-            font-size: 1rem;
-            font-family: 'Tajawal';
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
             min-width: 200px;
-            text-align: center;
-            margin: 0 auto;
-            display: block;
+            font-family: 'Tajawal', sans-serif;
         }
         
         .manual-section {
-            margin: 25px auto;
+            margin: 20px auto;
             max-width: 500px;
-            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         #manualInput {
             width: 100%;
-            max-width: 400px;
-            padding: 14px;
-            font-size: 1rem;
+            padding: 12px;
+            font-size: 16px;
             border: 2px solid #ddd;
-            border-radius: 30px;
+            border-radius: 5px;
             margin-bottom: 15px;
-            text-align: center;
-            font-family: 'Tajawal';
+            font-family: 'Tajawal', sans-serif;
+            transition: border 0.3s;
+        }
+        
+        #manualInput:focus {
+            border-color: var(--wuilt-color);
+            outline: none;
         }
         
         .status {
             padding: 15px;
-            margin: 20px auto;
+            margin: 15px auto;
             border-radius: 10px;
             text-align: center;
             max-width: 500px;
-            font-weight: bold;
+            font-weight: 500;
         }
         
-        .loading {
-            background: #e3f2fd;
-            color: #1976d2;
+        .status-loading {
+            background: #e7f1ff;
+            color: var(--wuilt-color);
         }
         
-        .ready {
-            background: var(--light);
-            color: var(--dark);
+        .status-ready {
+            background: #e6ffed;
+            color: var(--success-color);
         }
         
-        .error {
+        .status-error {
             background: #ffebee;
-            color: var(--error);
+            color: var(--error-color);
         }
         
         .result-container {
-            margin: 25px auto;
+            margin: 20px auto;
             padding: 20px;
             background: white;
             border-radius: 10px;
             max-width: 500px;
-            text-align: center;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            display: none;
-        }
-        
-        .barcode-value {
-            background: var(--light);
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            margin: 15px 0;
             word-break: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-top: 3px solid var(--wuilt-color);
         }
         
-        .camera-loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 1.2rem;
+        .wuilt-brand {
             text-align: center;
-            z-index: 5;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .wuilt-brand a {
+            color: var(--wuilt-color);
+            text-decoration: none;
+            font-weight: bold;
         }
         
         @media (max-width: 600px) {
-            .container {
-                padding: 15px;
-            }
-            
             .scan-box {
                 width: 90%;
-                height: 180px;
+                height: 150px;
             }
             
             button {
                 padding: 10px 15px;
-                font-size: 0.9rem;
-                min-width: 120px;
+                font-size: 14px;
             }
         }
     </style>
@@ -262,14 +243,12 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>قارئ الباركود المتقدم</h1>
-            <p>امسح باركود المنتج للوصول إلى معلوماته</p>
+            <h1>قارئ الباركود - WUILT</h1>
+            <p>امسح الباركود تلقائياً أو أدخل الرمز يدوياً</p>
         </div>
         
         <div class="scanner-container">
-            <div id="reader">
-                <div class="camera-loading">جاري تحميل الكاميرا...</div>
-            </div>
+            <div id="reader"></div>
             <div class="scan-overlay">
                 <div class="scan-box">
                     <div class="scan-line"></div>
@@ -279,154 +258,95 @@
         
         <div class="controls">
             <select id="cameraSelect" style="display:none;"></select>
-            <button id="flashBtn" onclick="toggleFlash()" disabled class="btn-flash">
+            <button id="flashBtn" onclick="toggleFlash()" disabled>
                 <span id="flashIcon">🔦</span> الفلاش
             </button>
-            <button id="switchBtn" onclick="switchCamera()" disabled class="btn-switch">
+            <button id="switchBtn" onclick="switchCamera()" disabled>
                 🔄 تبديل الكاميرا
+            </button>
+            <button onclick="restartScanner()" class="btn-warning">
+                ♻️ إعادة التشغيل
             </button>
         </div>
         
-        <div id="status" class="status loading">
-            ⏳ جاري إعداد الماسح...
+        <div id="status" class="status status-loading">
+            ⏳ جاري تهيئة قارئ الباركود...
         </div>
         
         <div class="manual-section">
-            <h3>أو أدخل الباركود يدويًا</h3>
-            <input type="text" id="manualInput" placeholder="اكتب رقم الباركود هنا">
-            <button onclick="manualSearch()" class="btn-success" style="margin-top: 10px; width: 100%;">
-                🔍 بحث في الموقع
+            <h3>الإدخال اليدوي</h3>
+            <input type="text" id="manualInput" placeholder="أدخل رقم الباركود هنا...">
+            <button onclick="manualSearch()" class="btn-success" style="width:100%;">
+                🔍 بحث
             </button>
         </div>
         
-        <div id="result" class="result-container">
+        <div id="result" class="result-container" style="display:none;">
             <h3>نتيجة المسح</h3>
-            <div class="barcode-value" id="barcodeValue"></div>
-            <p>جاري التوجيه إلى صفحة المنتج...</p>
+            <div id="resultContent"></div>
+            <button onclick="openInWuilt()" style="width:100%;margin-top:15px;">
+                🔍 البحث في WUILT
+            </button>
+        </div>
+        
+        <div class="wuilt-brand">
+            أداة مقدمة من <a href="https://www.wuilt.com" target="_blank">WUILT</a>
         </div>
     </div>
 
     <script>
-        // ===== العناصر الرئيسية =====
+        // ============== المتغيرات العامة ==============
         const statusEl = document.getElementById('status');
         const resultEl = document.getElementById('result');
-        const barcodeValue = document.getElementById('barcodeValue');
+        const resultContent = document.getElementById('resultContent');
         const cameraSelect = document.getElementById('cameraSelect');
         const flashBtn = document.getElementById('flashBtn');
         const switchBtn = document.getElementById('switchBtn');
         const flashIcon = document.getElementById('flashIcon');
         const manualInput = document.getElementById('manualInput');
-        const cameraLoadingEl = document.querySelector('.camera-loading');
         
-        // ===== المتغيرات العامة =====
-        let html5QrScanner = null;
-        let currentTrack = null;
+        let html5QrScanner;
+        let currentTrack;
         let cameras = [];
         let currentCameraIndex = 0;
         let isFlashOn = false;
         let lastResult = '';
-        let beepSound = null;
-        let backCameraId = null;
+        let isScanning = false;
         
-        // ===== تهيئة الصوت =====
-        function initBeepSound() {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.type = 'sine';
-                oscillator.frequency.value = 800;
-                gainNode.gain.value = 0.3;
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                beepSound = {
-                    oscillator: oscillator,
-                    gainNode: gainNode,
-                    context: audioContext
-                };
-            } catch (error) {
-                console.error('تعذر تهيئة الصوت:', error);
-            }
-        }
-        
-        // ===== تشغيل صوت التنبيه =====
-        function playBeep() {
-            if (!beepSound) return;
-            
-            try {
-                beepSound.oscillator = beepSound.context.createOscillator();
-                beepSound.oscillator.type = 'sine';
-                beepSound.oscillator.frequency.value = 800;
-                beepSound.oscillator.connect(beepSound.gainNode);
-                
-                beepSound.oscillator.start();
-                setTimeout(() => {
-                    beepSound.oscillator.stop();
-                }, 200);
-            } catch (error) {
-                console.error('تعذر تشغيل الصوت:', error);
-            }
-        }
-        
-        // ===== تهيئة الماسح =====
+        // ============== تهيئة الماسح ==============
         async function initScanner() {
             try {
-                setStatus('loading', '⏳ جاري إعداد الماسح...');
-                cameraLoadingEl.style.display = 'block';
+                setStatus('loading', '⏳ جاري التحضير...');
                 
-                // 1. تهيئة الصوت
-                initBeepSound();
-                
-                // 2. التحقق من دعم المتصفح
+                // 1. التحقق من دعم المتصفح
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                     throw new Error('المتصفح لا يدعم الوصول إلى الكاميرا');
                 }
                 
-                // 3. الحصول على الكاميرات المتاحة مع تحديد الخلفية أولاً
+                // 2. الحصول على الكاميرات المتاحة
                 cameras = await Html5Qrcode.getCameras();
                 if (!cameras || cameras.length === 0) {
                     throw new Error('لا توجد كاميرات متاحة');
                 }
                 
-                // تحديد الكاميرا الخلفية أولاً
-                backCameraId = findBackCamera();
-                
-                // 4. إعداد واجهة المستخدم للكاميرات
+                // 3. إعداد واجهة المستخدم للكاميرات
                 setupCameraUI();
                 
-                // 5. بدء الماسح بالكاميرا المفضلة (الخلفية أولاً)
-                const preferredCameraId = backCameraId || cameras[0].id;
-                await startScanner(preferredCameraId);
+                // 4. بدء الماسح بالكاميرا الأولى
+                await startScanner(cameras[currentCameraIndex].id);
                 
             } catch (error) {
                 handleInitError(error);
             }
         }
         
-        // ===== البحث عن الكاميرا الخلفية =====
-        function findBackCamera() {
-            for (let i = 0; i < cameras.length; i++) {
-                const camera = cameras[i];
-                if (camera.label.toLowerCase().includes('back') || 
-                    camera.label.toLowerCase().includes('rear')) {
-                    currentCameraIndex = i;
-                    return camera.id;
-                }
-            }
-            return null;
-        }
-        
-        // ===== بدء الماسح =====
+        // ============== بدء الماسح ==============
         async function startScanner(cameraId) {
             try {
                 setStatus('loading', '📷 جاري تشغيل الكاميرا...');
-                cameraLoadingEl.style.display = 'block';
                 
                 // إيقاف الماسح الحالي إذا كان يعمل
-                if (html5QrScanner && html5QrScanner.isScanning) {
+                if (html5QrScanner && isScanning) {
                     await safeStopScanner();
                 }
                 
@@ -435,7 +355,7 @@
                 
                 // إعدادات متقدمة للمسح
                 const config = {
-                    fps: 10,
+                    fps: 15,
                     qrbox: { width: 250, height: 250 },
                     aspectRatio: 1.0,
                     disableFlip: false,
@@ -449,8 +369,12 @@
                         Html5QrcodeSupportedFormats.CODE_93,
                         Html5QrcodeSupportedFormats.CODABAR,
                         Html5QrcodeSupportedFormats.ITF,
+                        Html5QrcodeSupportedFormats.RSS_14,
+                        Html5QrcodeSupportedFormats.RSS_EXPANDED,
                         Html5QrcodeSupportedFormats.QR_CODE,
+                        Html5QrcodeSupportedFormats.AZTEC,
                         Html5QrcodeSupportedFormats.DATA_MATRIX,
+                        Html5QrcodeSupportedFormats.MAXICODE,
                         Html5QrcodeSupportedFormats.PDF_417
                     ]
                 };
@@ -459,58 +383,51 @@
                 await html5QrScanner.start(
                     cameraId,
                     config,
-                    (decodedText) => {
-                        handleScanSuccess(decodedText);
-                    },
-                    (errorMessage) => {
-                        handleScanError(errorMessage);
-                    }
-                ).then(() => {
-                    cameraLoadingEl.style.display = 'none';
-                    setStatus('ready', '✅ جاهز للمسح - قرب الباركود من الكاميرا');
-                    setupFlashControl();
-                });
+                    onScanSuccess,
+                    onScanError
+                );
+                
+                isScanning = true;
+                setStatus('ready', '✅ جاهز للمسح - قرب الباركود من الكاميرا');
+                
+                // إعداد التحكم في الفلاش
+                setupFlashControl();
                 
             } catch (error) {
                 handleStartError(error);
             }
         }
         
-        // ===== معالجة المسح الناجح =====
-        function handleScanSuccess(decodedText) {
+        // ============== معالجة النتائج ==============
+        function onScanSuccess(decodedText, decodedResult) {
             if (decodedText !== lastResult) {
                 lastResult = decodedText;
                 playBeep();
                 showResult(decodedText);
-                redirectToProduct(decodedText);
+                setStatus('ready', '✅ تم المسح بنجاح!');
+                
+                // إيقاف مؤقت للمسح بعد القراءة الناجحة
+                setTimeout(() => {
+                    if (html5QrScanner && isScanning) {
+                        html5QrScanner.pause();
+                        setStatus('ready', '⏸ تم الإيقاف المؤقت - انقر إعادة التشغيل للمسح مجدداً');
+                    }
+                }, 1000);
             }
         }
         
-        // ===== معالجة أخطاء المسح =====
-        function handleScanError(errorMessage) {
-            if (!errorMessage.includes('NotFoundException')) {
-                console.warn('خطأ المسح:', errorMessage);
+        function onScanError(errorMessage) {
+            // تجاهل الأخطاء الروتينية
+            if (!errorMessage.includes('NotFoundException') && 
+                !errorMessage.includes('No QR code found')) {
+                console.warn('تحذير المسح:', errorMessage);
             }
         }
         
-        // ===== عرض النتيجة =====
-        function showResult(barcode) {
-            barcodeValue.textContent = barcode;
-            resultEl.style.display = 'block';
-            setStatus('ready', '✅ تم مسح الباركود بنجاح');
-        }
-        
-        // ===== التوجيه إلى المنتج =====
-        function redirectToProduct(barcode) {
-            setTimeout(() => {
-                window.location.href = `https://www.wuilt.com/search?q=${encodeURIComponent(barcode)}`;
-            }, 1500);
-        }
-        
-        // ===== التحكم في الكاميرا =====
+        // ============== التحكم في الكاميرا ==============
         async function switchCamera() {
             if (cameras.length < 2) {
-                showAlert('يوجد كاميرا واحدة فقط متاحة');
+                showAlert('⚠️ يوجد كاميرا واحدة فقط متاحة');
                 return;
             }
             
@@ -519,7 +436,15 @@
             await startScanner(cameras[currentCameraIndex].id);
         }
         
-        // ===== التحكم في الفلاش =====
+        async function restartScanner() {
+            if (cameras.length > 0) {
+                await startScanner(cameras[currentCameraIndex].id);
+            } else {
+                await initScanner();
+            }
+        }
+        
+        // ============== التحكم في الفلاش ==============
         async function toggleFlash() {
             if (!currentTrack) {
                 showAlert('الكاميرا غير جاهزة');
@@ -535,32 +460,154 @@
                     });
                     
                     flashIcon.textContent = isFlashOn ? '💡' : '🔦';
-                    flashBtn.style.backgroundColor = isFlashOn ? '#ff8f00' : '#ffc107';
+                    flashBtn.style.backgroundColor = isFlashOn ? '#f39c12' : '#5d3be8';
                     
                     // تحسين الرؤية في الإضاءة المنخفضة
-                    const videoElement = document.querySelector('#reader video');
-                    if (videoElement) {
-                        videoElement.style.filter = isFlashOn ? 'brightness(1.2) contrast(1.2)' : 'none';
+                    if (isFlashOn) {
+                        document.querySelector('#reader video').style.filter = 'brightness(1.2) contrast(1.2)';
+                    } else {
+                        document.querySelector('#reader video').style.filter = 'none';
                     }
                 }
             } catch (error) {
                 console.error('خطأ التحكم في الفلاش:', error);
-                showAlert('لا يدعم جهازك التحكم في الفلاش');
+                showAlert('⚠️ لا يدعم جهازك التحكم في الفلاش');
             }
         }
         
-        // ===== البحث اليدوي =====
+        // ============== البحث اليدوي ==============
         function manualSearch() {
             const code = manualInput.value.trim();
             if (code) {
                 showResult(code);
-                redirectToProduct(code);
             } else {
-                showAlert('الرجاء إدخال الباركود أولاً');
+                showAlert('❗ الرجاء إدخال الباركود أولاً');
             }
         }
         
-        // ===== إعداد واجهة الكاميرا =====
+        // ============== عرض النتائج ==============
+        function showResult(code) {
+            resultContent.innerHTML = `
+                <p><strong>نوع الباركود:</strong> ${detectBarcodeType(code)}</p>
+                <p><strong>المحتوى:</strong></p>
+                <div style="background:#f8f9fa; padding:10px; border-radius:5px;">
+                    ${code}
+                </div>
+            `;
+            resultEl.style.display = 'block';
+            
+            // حفظ آخر نتيجة
+            localStorage.setItem('lastBarcodeScan', code);
+        }
+        
+        // فتح نتيجة البحث في WUILT
+        function openInWuilt() {
+            const code = lastResult || manualInput.value.trim();
+            if (code) {
+                // البحث في موقع WUILT
+                window.open(`https://www.wuilt.com/search?q=${encodeURIComponent(code)}`, '_blank');
+            } else {
+                showAlert('❗ لا يوجد باركود للبحث عنه');
+            }
+        }
+        
+        // ============== وظائف مساعدة ==============
+        function setStatus(type, message) {
+            statusEl.className = `status status-${type}`;
+            statusEl.innerHTML = message;
+        }
+        
+        function showAlert(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.bottom = '20px';
+            alertDiv.style.left = '50%';
+            alertDiv.style.transform = 'translateX(-50%)';
+            alertDiv.style.backgroundColor = '#333';
+            alertDiv.style.color = 'white';
+            alertDiv.style.padding = '10px 20px';
+            alertDiv.style.borderRadius = '5px';
+            alertDiv.style.zIndex = '1000';
+            alertDiv.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+            alertDiv.textContent = message;
+            
+            document.body.appendChild(alertDiv);
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+        
+        function playBeep() {
+            // إنشاء صوت بب بدون ملفات خارجية
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 800;
+                gainNode.gain.value = 0.3;
+                
+                oscillator.start();
+                setTimeout(() => {
+                    oscillator.stop();
+                }, 200);
+            } catch (e) {
+                console.log('تعذر تشغيل الصوت:', e);
+            }
+        }
+        
+        function detectBarcodeType(code) {
+            // تحليل نوع الباركود بناءً على شكله
+            if (/^[0-9]{12,13}$/.test(code)) return 'EAN/UPC';
+            if (/^[0-9]{8}$/.test(code)) return 'EAN-8';
+            if (/^[0-9]{14}$/.test(code)) return 'ITF-14';
+            if (/^[A-Za-z0-9]+$/.test(code) && code.length <= 15) return 'Code 128';
+            if (/^[0-9A-Z\-\$\/\+\%\.\s]+$/.test(code)) return 'Code 39';
+            if (/^[0-9A-Da-d][0-9A-Z\-\$\/\+\%\.\s]+[0-9A-Da-d]$/.test(code)) return 'Codabar';
+            if (/^http(s)?:\/\//.test(code)) return 'QR Code (URL)';
+            return 'غير معروف';
+        }
+        
+        // ============== إدارة الأخطاء ==============
+        function handleInitError(error) {
+            console.error('خطأ التهيئة:', error);
+            setStatus('error', `❌ ${getErrorMessage(error)}`);
+            enableManualInput();
+        }
+        
+        function handleStartError(error) {
+            console.error('خطأ بدء الماسح:', error);
+            setStatus('error', `❌ ${getErrorMessage(error)}`);
+            enableManualInput();
+        }
+        
+        function getErrorMessage(error) {
+            const errorMap = {
+                'NotAllowedError': 'تم رفض الإذن بالوصول إلى الكاميرا',
+                'NotFoundError': 'لم يتم العثور على كاميرا متاحة',
+                'NotSupportedError': 'المتصفح لا يدعم هذه الميزة',
+                'NotReadableError': 'الكاميرا قيد الاستخدام من قبل تطبيق آخر',
+                'OverconstrainedError': 'لا توجد كاميرا متوافقة مع المتطلبات',
+                'StreamApiNotSupportedError': 'المتصفح لا يدعم واجهة Stream API'
+            };
+            
+            return errorMap[error.name] || 
+                   error.message || 
+                   'حدث خطأ غير متوقع في تشغيل الكاميرا';
+        }
+        
+        function enableManualInput() {
+            manualInput.disabled = false;
+            manualInput.placeholder = 'استخدم الإدخال اليدوي بسبب مشكلة الكاميرا';
+            resultEl.style.display = 'block';
+            resultContent.innerHTML = 'تعذر تشغيل الكاميرا، يرجى استخدام الإدخال اليدوي';
+        }
+        
+        // ============== إعدادات واجهة المستخدم ==============
         function setupCameraUI() {
             if (cameras.length > 1) {
                 cameraSelect.style.display = 'block';
@@ -578,7 +625,6 @@
             }
         }
         
-        // ===== إعداد التحكم في الفلاش =====
         function setupFlashControl() {
             const videoElement = document.querySelector('#reader video');
             if (videoElement && videoElement.srcObject) {
@@ -596,84 +642,16 @@
             }
         }
         
-        // ===== إيقاف الماسح بأمان =====
         async function safeStopScanner() {
             try {
-                if (html5QrScanner && html5QrScanner.isScanning) {
-                    await html5QrScanner.stop();
-                }
+                await html5QrScanner.stop();
+                isScanning = false;
             } catch (error) {
                 console.error('خطأ إيقاف الماسح:', error);
             }
         }
         
-        // ===== تعيين حالة الماسح =====
-        function setStatus(type, message) {
-            statusEl.className = `status ${type}`;
-            statusEl.innerHTML = message;
-        }
-        
-        // ===== عرض رسالة تنبيه =====
-        function showAlert(message) {
-            const alertDiv = document.createElement('div');
-            alertDiv.style.position = 'fixed';
-            alertDiv.style.bottom = '20px';
-            alertDiv.style.left = '50%';
-            alertDiv.style.transform = 'translateX(-50%)';
-            alertDiv.style.backgroundColor = '#333';
-            alertDiv.style.color = 'white';
-            alertDiv.style.padding = '12px 24px';
-            alertDiv.style.borderRadius = '30px';
-            alertDiv.style.zIndex = '1000';
-            alertDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-            alertDiv.textContent = message;
-            
-            document.body.appendChild(alertDiv);
-            setTimeout(() => {
-                alertDiv.style.opacity = '0';
-                setTimeout(() => {
-                    alertDiv.remove();
-                }, 300);
-            }, 3000);
-        }
-        
-        // ===== معالجة أخطاء التهيئة =====
-        function handleInitError(error) {
-            console.error('خطأ التهيئة:', error);
-            setStatus('error', `❌ ${getErrorMessage(error)}`);
-            enableManualInput();
-            cameraLoadingEl.style.display = 'none';
-        }
-        
-        // ===== معالجة أخطاء البدء =====
-        function handleStartError(error) {
-            console.error('خطأ بدء الماسح:', error);
-            setStatus('error', `❌ ${getErrorMessage(error)}`);
-            enableManualInput();
-            cameraLoadingEl.style.display = 'none';
-        }
-        
-        // ===== الحصول على رسالة الخطأ =====
-        function getErrorMessage(error) {
-            const errorMap = {
-                'NotAllowedError': 'تم رفض الإذن بالوصول إلى الكاميرا',
-                'NotFoundError': 'لم يتم العثور على كاميرا متاحة',
-                'NotSupportedError': 'المتصفح لا يدعم هذه الميزة',
-                'NotReadableError': 'الكاميرا قيد الاستخدام من قبل تطبيق آخر',
-                'OverconstrainedError': 'لا توجد كاميرا متوافقة مع المتطلبات'
-            };
-            
-            return errorMap[error.name] || error.message || 'حدث خطأ غير متوقع';
-        }
-        
-        // ===== تفعيل الإدخال اليدوي =====
-        function enableManualInput() {
-            manualInput.disabled = false;
-            manualInput.placeholder = 'استخدم الإدخال اليدوي بسبب مشكلة الكاميرا';
-            manualInput.focus();
-        }
-        
-        // ===== مستمعات الأحداث =====
+        // ============== مستمعات الأحداث ==============
         cameraSelect.addEventListener('change', async () => {
             currentCameraIndex = cameraSelect.selectedIndex;
             await startScanner(cameras[currentCameraIndex].id);
@@ -683,8 +661,15 @@
             if (e.key === 'Enter') manualSearch();
         });
         
-        // ===== بدء التشغيل عند تحميل الصفحة =====
-        document.addEventListener('DOMContentLoaded', initScanner);
+        // استعادة آخر مسح عند تحميل الصفحة
+        window.addEventListener('load', () => {
+            const lastScan = localStorage.getItem('lastBarcodeScan');
+            if (lastScan) {
+                manualInput.value = lastScan;
+            }
+            
+            initScanner();
+        });
     </script>
 </body>
 </html>
