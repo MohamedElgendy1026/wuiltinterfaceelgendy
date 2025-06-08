@@ -1,6 +1,34 @@
-<video id="video" width="300" height="200" autoplay></video>
+<script src="https://cdn.jsdelivr.net/npm/quagga2@latest/dist/quagga.min.js"></script>
 <script>
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => document.getElementById('video').srcObject = stream)
-    .catch(err => console.error("Error:", err));
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#reader'),
+            constraints: {
+                width: 640,
+                height: 480,
+                facingMode: "environment"
+            }
+        },
+        decoder: {
+            readers: [
+                "ean_reader",
+                "ean_8_reader",
+                "code_128_reader",
+                "code_39_reader",
+                "code_39_vin_reader",
+                "codabar_reader",
+                "upc_reader",
+                "upc_e_reader"
+            ]
+        }
+    }, function(err) {
+        if (err) console.error(err);
+        Quagga.start();
+    });
+
+    Quagga.onDetected(function(result) {
+        console.log("تم المسح:", result.codeResult.code);
+    });
 </script>
