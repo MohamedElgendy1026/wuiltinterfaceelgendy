@@ -31,7 +31,6 @@
       border-radius: 10px;
     }
 
-    /* مستطيل التوجيه */
     #scan-box {
       position: absolute;
       top: 30%;
@@ -43,40 +42,50 @@
       pointer-events: none;
     }
 
-    #info {
+    #info, #manual {
       margin-top: 15px;
       font-size: 16px;
       color: #444;
     }
+
+    #manual input {
+      padding: 8px;
+      width: 80%;
+      max-width: 300px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 8px 14px;
+      font-size: 14px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <h2>امسح الباركود بالكاميرا</h2>
+  <h2>امسح الباركود أو اكتبه يدويًا</h2>
   <div id="video-wrapper">
-    <video id="video" muted autoplay></video>
+    <video id="video" autoplay muted></video>
     <div id="scan-box"></div>
   </div>
-  <p id="info">جاري تشغيل الكاميرا...</p>
+
+  <div id="info">جارٍ تشغيل الكاميرا...</div>
+
+  <button onclick="toggleTorch()">تشغيل/إيقاف الفلاش 🔦</button>
+
+  <div id="manual">
+    <p>مش قادر تمسح؟ اكتبه هنا:</p>
+    <input type="text" id="manualInput" placeholder="أدخل الباركود">
+    <br>
+    <button onclick="manualSearch()">بحث يدوي 🔍</button>
+  </div>
+
+  <audio id="beep" src="https://www.soundjay.com/buttons/sounds/beep-07.mp3" preload="auto"></audio>
 
   <script>
     const video = document.getElementById('video');
     const info = document.getElementById('info');
-
-    const codeReader = new ZXing.BrowserMultiFormatReader();
-
-    codeReader.decodeFromVideoDevice(null, video, (result, err) => {
-      if (result) {
-        const barcode = result.text;
-        info.textContent = `✅ الباركود: ${barcode} - جارٍ التحويل...`;
-        codeReader.reset();
-
-        // حول المستخدم لصفحة البحث على موقعك
-        window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(barcode)}`;
-      } else if (err && !(err instanceof ZXing.NotFoundException)) {
-        console.error(err);
-        info.textContent = '❌ حصلت مشكلة في قراءة الباركود';
-      }
-    });
-  </script>
-</body>
-</html>
+    const beep = document.getElementById('beep');
+    let currentStream;
+    let t
