@@ -5,58 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>قارئ الباركود - ElgendyPro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #4a6bff;
-            --elgendypro-color: #2c7be5; /* لون ElgendyPro الرئيسي */
-            --success-color: #28a745;
-            --error-color: #dc3545;
-            --warning-color: #ffc107;
-        }
-        
         body {
-            font-family: 'Tajawal', Arial, sans-serif;
-            background: #f8f9fa;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
             margin: 0;
-            padding: 0;
-            color: #333;
+            padding: 20px;
+            text-align: center;
         }
         
         .container {
-            max-width: 100%;
-            padding: 20px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 15px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-top: 5px solid var(--elgendypro-color);
-        }
-        
-        .header h1 {
-            color: var(--elgendypro-color);
-            margin-bottom: 10px;
-        }
-        
-        .scanner-container {
-            position: relative;
-            margin: 0 auto;
             max-width: 500px;
-            background: black;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
             border-radius: 10px;
-            overflow: hidden;
-            border: 3px solid var(--elgendypro-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
         #reader {
             width: 100%;
+            margin: 20px 0;
             position: relative;
+        }
+        
+        #reader video {
+            border-radius: 8px;
         }
         
         .scan-overlay {
@@ -65,8 +39,6 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            z-index: 10;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -75,8 +47,8 @@
         .scan-box {
             width: 80%;
             height: 200px;
-            border: 3px solid var(--elgendypro-color);
-            border-radius: 10px;
+            border: 3px solid #2c7be5;
+            border-radius: 8px;
             position: relative;
         }
         
@@ -86,9 +58,8 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background: rgba(44, 123, 229, 0.7); /* لون ElgendyPro مع شفافية */
+            background: rgba(44, 123, 229, 0.7);
             animation: scan 2s infinite linear;
-            box-shadow: 0 0 10px var(--elgendypro-color);
         }
         
         @keyframes scan {
@@ -96,71 +67,20 @@
             100% { top: 100%; }
         }
         
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-            padding: 15px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
         button {
-            padding: 12px 20px;
-            background: var(--elgendypro-color);
+            background: #2c7be5;
             color: white;
             border: none;
+            padding: 12px 20px;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            margin: 10px 5px;
             transition: all 0.3s;
-            font-family: 'Tajawal', sans-serif;
-            font-weight: 500;
         }
         
         button:hover {
             opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 3px 8px rgba(44, 123, 229, 0.3);
-        }
-        
-        button:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-        
-        .btn-success {
-            background: var(--success-color);
-        }
-        
-        .btn-warning {
-            background: var(--warning-color);
-            color: #333;
-        }
-        
-        #cameraSelect {
-            padding: 10px 15px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            font-size: 16px;
-            min-width: 200px;
-            font-family: 'Tajawal', sans-serif;
-        }
-        
-        .manual-section {
-            margin: 20px auto;
-            max-width: 500px;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         #manualInput {
@@ -170,506 +90,203 @@
             border: 2px solid #ddd;
             border-radius: 5px;
             margin-bottom: 15px;
-            font-family: 'Tajawal', sans-serif;
-            transition: border 0.3s;
         }
         
-        #manualInput:focus {
-            border-color: var(--elgendypro-color);
-            outline: none;
+        #result {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: right;
         }
         
         .status {
-            padding: 15px;
-            margin: 15px auto;
-            border-radius: 10px;
-            text-align: center;
-            max-width: 500px;
-            font-weight: 500;
-        }
-        
-        .status-loading {
-            background: #e7f1ff;
-            color: var(--elgendypro-color);
-        }
-        
-        .status-ready {
-            background: #e6ffed;
-            color: var(--success-color);
-        }
-        
-        .status-error {
-            background: #ffebee;
-            color: var(--error-color);
-        }
-        
-        .result-container {
-            margin: 20px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            max-width: 500px;
-            word-break: break-word;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            border-top: 3px solid var(--elgendypro-color);
-        }
-        
-        .elgendypro-brand {
-            text-align: center;
-            margin-top: 30px;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .elgendypro-brand a {
-            color: var(--elgendypro-color);
-            text-decoration: none;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
             font-weight: bold;
         }
         
-        @media (max-width: 600px) {
-            .scan-box {
-                width: 90%;
-                height: 150px;
-            }
-            
-            button {
-                padding: 10px 15px;
-                font-size: 14px;
-            }
+        .loading {
+            background: #e7f1ff;
+            color: #2c7be5;
+        }
+        
+        .success {
+            background: #e6ffed;
+            color: #28a745;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #dc3545;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>قارئ الباركود - ElgendyPro</h1>
-            <p>امسح الباركود تلقائياً أو أدخل الرمز يدوياً</p>
-        </div>
+        <h1 style="color: #2c7be5;">قارئ الباركود</h1>
+        <p>امسح باركود المنتج للبحث في متجر ElgendyPro</p>
         
-        <div class="scanner-container">
-            <div id="reader"></div>
-            <div class="scan-overlay">
-                <div class="scan-box">
-                    <div class="scan-line"></div>
-                </div>
+        <div id="reader"></div>
+        <div class="scan-overlay">
+            <div class="scan-box">
+                <div class="scan-line"></div>
             </div>
         </div>
         
-        <div class="controls">
-            <select id="cameraSelect" style="display:none;"></select>
-            <button id="flashBtn" onclick="toggleFlash()" disabled>
-                <span id="flashIcon">🔦</span> الفلاش
-            </button>
-            <button id="switchBtn" onclick="switchCamera()" disabled>
-                🔄 تبديل الكاميرا
-            </button>
-            <button onclick="restartScanner()" class="btn-warning">
-                ♻️ إعادة التشغيل
-            </button>
-        </div>
-        
-        <div id="status" class="status status-loading">
+        <div id="status" class="status loading">
             ⏳ جاري تهيئة قارئ الباركود...
         </div>
         
-        <div class="manual-section">
-            <h3>الإدخال اليدوي</h3>
-            <input type="text" id="manualInput" placeholder="أدخل رقم الباركود هنا...">
-            <button onclick="manualSearch()" class="btn-success" style="width:100%;">
-                🔍 بحث
-            </button>
+        <div>
+            <input type="text" id="manualInput" placeholder="أدخل رقم الباركود يدوياً...">
+            <button onclick="manualSearch()">🔍 بحث يدوي</button>
+            <button onclick="restartScanner()" style="background: #ffc107; color: #333;">🔄 إعادة تشغيل الماسح</button>
         </div>
         
-        <div id="result" class="result-container" style="display:none;">
+        <div id="result">
             <h3>نتيجة المسح</h3>
             <div id="resultContent"></div>
-            <button onclick="openInElgendyPro()" style="width:100%;margin-top:15px;">
-                🔍 البحث في ElgendyPro
-            </button>
-        </div>
-        
-        <div class="elgendypro-brand">
-            أداة مقدمة من <a href="https://www.elgendypro.com" target="_blank">ElgendyPro</a>
+            <button onclick="searchInElgendyPro()" style="width: 100%;">🔍 عرض المنتج في ElgendyPro</button>
         </div>
     </div>
 
     <script>
-        // ============== المتغيرات العامة ==============
+        // المتغيرات الأساسية
+        let html5QrScanner;
+        let lastResult = '';
         const statusEl = document.getElementById('status');
         const resultEl = document.getElementById('result');
         const resultContent = document.getElementById('resultContent');
-        const cameraSelect = document.getElementById('cameraSelect');
-        const flashBtn = document.getElementById('flashBtn');
-        const switchBtn = document.getElementById('switchBtn');
-        const flashIcon = document.getElementById('flashIcon');
         const manualInput = document.getElementById('manualInput');
         
-        let html5QrScanner;
-        let currentTrack;
-        let cameras = [];
-        let currentCameraIndex = 0;
-        let isFlashOn = false;
-        let lastResult = '';
-        let isScanning = false;
-        
-        // ============== تهيئة الماسح ==============
+        // تهيئة الماسح الضوئي
         async function initScanner() {
             try {
-                setStatus('loading', '⏳ جاري التحضير...');
-                
-                // 1. التحقق من دعم المتصفح
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error('المتصفح لا يدعم الوصول إلى الكاميرا');
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras.length === 0) {
+                    throw new Error('لا توجد كاميرا متاحة');
                 }
                 
-                // 2. الحصول على الكاميرات المتاحة
-                cameras = await Html5Qrcode.getCameras();
-                if (!cameras || cameras.length === 0) {
-                    throw new Error('لا توجد كاميرات متاحة');
-                }
-                
-                // 3. إعداد واجهة المستخدم للكاميرات
-                setupCameraUI();
-                
-                // 4. بدء الماسح بالكاميرا الأولى
-                await startScanner(cameras[currentCameraIndex].id);
-                
-            } catch (error) {
-                handleInitError(error);
-            }
-        }
-        
-        // ============== بدء الماسح ==============
-        async function startScanner(cameraId) {
-            try {
-                setStatus('loading', '📷 جاري تشغيل الكاميرا...');
-                
-                // إيقاف الماسح الحالي إذا كان يعمل
-                if (html5QrScanner && isScanning) {
-                    await safeStopScanner();
-                }
-                
-                // إنشاء مثيل جديد للماسح
                 html5QrScanner = new Html5Qrcode("reader");
-                
-                // إعدادات متقدمة للمسح
-                const config = {
-                    fps: 15,
-                    qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0,
-                    disableFlip: false,
-                    formatsToSupport: [
-                        Html5QrcodeSupportedFormats.UPC_A,
-                        Html5QrcodeSupportedFormats.UPC_E,
-                        Html5QrcodeSupportedFormats.EAN_13,
-                        Html5QrcodeSupportedFormats.EAN_8,
-                        Html5QrcodeSupportedFormats.CODE_128,
-                        Html5QrcodeSupportedFormats.CODE_39,
-                        Html5QrcodeSupportedFormats.CODE_93,
-                        Html5QrcodeSupportedFormats.CODABAR,
-                        Html5QrcodeSupportedFormats.ITF,
-                        Html5QrcodeSupportedFormats.RSS_14,
-                        Html5QrcodeSupportedFormats.RSS_EXPANDED,
-                        Html5QrcodeSupportedFormats.QR_CODE,
-                        Html5QrcodeSupportedFormats.AZTEC,
-                        Html5QrcodeSupportedFormats.DATA_MATRIX,
-                        Html5QrcodeSupportedFormats.MAXICODE,
-                        Html5QrcodeSupportedFormats.PDF_417
-                    ]
-                };
-                
-                // بدء المسح
                 await html5QrScanner.start(
-                    cameraId,
-                    config,
+                    cameras[0].id,
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 }
+                    },
                     onScanSuccess,
                     onScanError
                 );
                 
-                isScanning = true;
-                setStatus('ready', '✅ جاهز للمسح - قرب الباركود من الكاميرا');
-                
-                // إعداد التحكم في الفلاش
-                setupFlashControl();
-                
+                setStatus('success', '✅ جاهز للمسح - قرب الباركود من الكاميرا');
             } catch (error) {
-                handleStartError(error);
+                setStatus('error', `❌ ${getErrorMessage(error)}`);
+                manualInput.placeholder = 'استخدم الإدخال اليدوي بسبب مشكلة الكاميرا';
             }
         }
         
-        // ============== معالجة النتائج ==============
-        function onScanSuccess(decodedText, decodedResult) {
+        // عند نجاح المسح
+        function onScanSuccess(decodedText) {
             if (decodedText !== lastResult) {
                 lastResult = decodedText;
                 playBeep();
                 showResult(decodedText);
-                setStatus('ready', '✅ تم المسح بنجاح!');
-                
-                // إيقاف مؤقت للمسح بعد القراءة الناجحة
-                setTimeout(() => {
-                    if (html5QrScanner && isScanning) {
-                        html5QrScanner.pause();
-                        setStatus('ready', '⏸ تم الإيقاف المؤقت - انقر إعادة التشغيل للمسح مجدداً');
-                    }
-                }, 1000);
+                setStatus('success', '✅ تم مسح الباركود بنجاح!');
             }
         }
         
-        function onScanError(errorMessage) {
-            // تجاهل الأخطاء الروتينية
-            if (!errorMessage.includes('NotFoundException') && 
-                !errorMessage.includes('No QR code found')) {
-                console.warn('تحذير المسح:', errorMessage);
-            }
+        // عند حدوث خطأ في المسح
+        function onScanError(error) {
+            console.log('خطأ المسح:', error);
         }
         
-        // ============== التحكم في الكاميرا ==============
-        async function switchCamera() {
-            if (cameras.length < 2) {
-                showAlert('⚠️ يوجد كاميرا واحدة فقط متاحة');
-                return;
-            }
-            
-            currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
-            cameraSelect.selectedIndex = currentCameraIndex;
-            await startScanner(cameras[currentCameraIndex].id);
-        }
-        
-        async function restartScanner() {
-            if (cameras.length > 0) {
-                await startScanner(cameras[currentCameraIndex].id);
-            } else {
-                await initScanner();
-            }
-        }
-        
-        // ============== التحكم في الفلاش ==============
-        async function toggleFlash() {
-            if (!currentTrack) {
-                showAlert('الكاميرا غير جاهزة');
-                return;
-            }
-            
-            try {
-                const capabilities = currentTrack.getCapabilities();
-                if (capabilities.torch) {
-                    isFlashOn = !isFlashOn;
-                    await currentTrack.applyConstraints({
-                        advanced: [{ torch: isFlashOn }]
-                    });
-                    
-                    flashIcon.textContent = isFlashOn ? '💡' : '🔦';
-                    flashBtn.style.backgroundColor = isFlashOn ? '#f39c12' : '#2c7be5';
-                    
-                    // تحسين الرؤية في الإضاءة المنخفضة
-                    if (isFlashOn) {
-                        document.querySelector('#reader video').style.filter = 'brightness(1.2) contrast(1.2)';
-                    } else {
-                        document.querySelector('#reader video').style.filter = 'none';
-                    }
-                }
-            } catch (error) {
-                console.error('خطأ التحكم في الفلاش:', error);
-                showAlert('⚠️ لا يدعم جهازك التحكم في الفلاش');
-            }
-        }
-        
-        // ============== البحث اليدوي ==============
+        // البحث اليدوي
         function manualSearch() {
             const code = manualInput.value.trim();
             if (code) {
+                lastResult = code;
                 showResult(code);
+                setStatus('success', '✅ تم إدخال الباركود يدوياً');
             } else {
-                showAlert('❗ الرجاء إدخال الباركود أولاً');
+                setStatus('error', '❗ الرجاء إدخال الباركود أولاً');
             }
         }
         
-        // ============== عرض النتائج ==============
+        // إعادة تشغيل الماسح
+        async function restartScanner() {
+            if (html5QrScanner) {
+                await html5QrScanner.stop();
+            }
+            initScanner();
+        }
+        
+        // عرض النتيجة
         function showResult(code) {
             resultContent.innerHTML = `
-                <p><strong>نوع الباركود:</strong> ${detectBarcodeType(code)}</p>
-                <p><strong>المحتوى:</strong></p>
-                <div style="background:#f8f9fa; padding:10px; border-radius:5px;">
-                    ${code}
-                </div>
+                <p><strong>رقم الباركود:</strong> ${code}</p>
+                <p>اضغط على الزر أدناه للبحث عن المنتج</p>
             `;
             resultEl.style.display = 'block';
-            
-            // حفظ آخر نتيجة
-            localStorage.setItem('lastBarcodeScan', code);
         }
         
-        // فتح نتيجة البحث في ElgendyPro
-        function openInElgendyPro() {
+        // البحث في موقع ElgendyPro
+        function searchInElgendyPro() {
             const code = lastResult || manualInput.value.trim();
             if (code) {
-                // البحث في موقع ElgendyPro
-                window.open(https://www.elgendypro.com/search?barcode=${encodeURIComponent(code)}`, '_blank');
+                // هذا الرابط الأساسي - يمكنك تعديله حسب هيكل موقعك
+                const searchUrl = `https://www.elgendypro.com/search?q=${encodeURIComponent(code)}`;
+                
+                // جرب هذه البدائل إذا لم يعمل الرابط الأساسي:
+                // const searchUrl = `https://www.elgendypro.com/products?barcode=${code}`;
+                // const searchUrl = `https://www.elgendypro.com/catalog/search?query=${code}`;
+                
+                window.open(searchUrl, '_blank');
             } else {
-                showAlert('❗ لا يوجد باركود للبحث عنه');
+                setStatus('error', '❗ لا يوجد باركود للبحث عنه');
             }
         }
         
-        // ============== وظائف مساعدة ==============
+        // وظائف مساعدة
         function setStatus(type, message) {
-            statusEl.className = `status status-${type}`;
+            statusEl.className = `status ${type}`;
             statusEl.innerHTML = message;
         }
         
-        function showAlert(message) {
-            const alertDiv = document.createElement('div');
-            alertDiv.style.position = 'fixed';
-            alertDiv.style.bottom = '20px';
-            alertDiv.style.left = '50%';
-            alertDiv.style.transform = 'translateX(-50%)';
-            alertDiv.style.backgroundColor = '#333';
-            alertDiv.style.color = 'white';
-            alertDiv.style.padding = '10px 20px';
-            alertDiv.style.borderRadius = '5px';
-            alertDiv.style.zIndex = '1000';
-            alertDiv.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-            alertDiv.textContent = message;
-            
-            document.body.appendChild(alertDiv);
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 3000);
-        }
-        
         function playBeep() {
-            // إنشاء صوت بب بدون ملفات خارجية
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                oscillator.type = 'sine';
-                oscillator.frequency.value = 800;
-                gainNode.gain.value = 0.3;
-                
-                oscillator.start();
-                setTimeout(() => {
-                    oscillator.stop();
-                }, 200);
-            } catch (e) {
-                console.log('تعذر تشغيل الصوت:', e);
-            }
-        }
-        
-        function detectBarcodeType(code) {
-            // تحليل نوع الباركود بناءً على شكله
-            if (/^[0-9]{12,13}$/.test(code)) return 'EAN/UPC';
-            if (/^[0-9]{8}$/.test(code)) return 'EAN-8';
-            if (/^[0-9]{14}$/.test(code)) return 'ITF-14';
-            if (/^[A-Za-z0-9]+$/.test(code) && code.length <= 15) return 'Code 128';
-            if (/^[0-9A-Z\-\$\/\+\%\.\s]+$/.test(code)) return 'Code 39';
-            if (/^[0-9A-Da-d][0-9A-Z\-\$\/\+\%\.\s]+[0-9A-Da-d]$/.test(code)) return 'Codabar';
-            if (/^http(s)?:\/\//.test(code)) return 'QR Code (URL)';
-            return 'غير معروف';
-        }
-        
-        // ============== إدارة الأخطاء ==============
-        function handleInitError(error) {
-            console.error('خطأ التهيئة:', error);
-            setStatus('error', `❌ ${getErrorMessage(error)}`);
-            enableManualInput();
-        }
-        
-        function handleStartError(error) {
-            console.error('خطأ بدء الماسح:', error);
-            setStatus('error', `❌ ${getErrorMessage(error)}`);
-            enableManualInput();
+            // صوت بسيط عند المسح الناجح
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 800;
+            gainNode.gain.value = 0.3;
+            
+            oscillator.start();
+            setTimeout(() => {
+                oscillator.stop();
+            }, 200);
         }
         
         function getErrorMessage(error) {
-            const errorMap = {
-                'NotAllowedError': 'تم رفض الإذن بالوصول إلى الكاميرا',
-                'NotFoundError': 'لم يتم العثور على كاميرا متاحة',
+            const errorMessages = {
+                'NotAllowedError': 'تم رفض الإذن باستخدام الكاميرا',
+                'NotFoundError': 'لم يتم العثور على كاميرا',
                 'NotSupportedError': 'المتصفح لا يدعم هذه الميزة',
-                'NotReadableError': 'الكاميرا قيد الاستخدام من قبل تطبيق آخر',
-                'OverconstrainedError': 'لا توجد كاميرا متوافقة مع المتطلبات',
-                'StreamApiNotSupportedError': 'المتصفح لا يدعم واجهة Stream API'
+                'NotReadableError': 'تعذر الوصول إلى الكاميرا'
             };
             
-            return errorMap[error.name] || 
-                   error.message || 
-                   'حدث خطأ غير متوقع في تشغيل الكاميرا';
+            return errorMessages[error.name] || 'حدث خطأ غير متوقع';
         }
         
-        function enableManualInput() {
-            manualInput.disabled = false;
-            manualInput.placeholder = 'استخدم الإدخال اليدوي بسبب مشكلة الكاميرا';
-            resultEl.style.display = 'block';
-            resultContent.innerHTML = 'تعذر تشغيل الكاميرا، يرجى استخدام الإدخال اليدوي';
-        }
-        
-        // ============== إعدادات واجهة المستخدم ==============
-        function setupCameraUI() {
-            if (cameras.length > 1) {
-                cameraSelect.style.display = 'block';
-                cameraSelect.innerHTML = '';
-                
-                cameras.forEach((camera, index) => {
-                    const option = document.createElement('option');
-                    option.value = camera.id;
-                    option.text = camera.label || `الكاميرا ${index + 1}`;
-                    if (index === currentCameraIndex) option.selected = true;
-                    cameraSelect.appendChild(option);
-                });
-                
-                switchBtn.disabled = false;
-            }
-        }
-        
-        function setupFlashControl() {
-            const videoElement = document.querySelector('#reader video');
-            if (videoElement && videoElement.srcObject) {
-                currentTrack = videoElement.srcObject.getVideoTracks()[0];
-                
-                if (currentTrack && currentTrack.getCapabilities().torch) {
-                    flashBtn.disabled = false;
-                    
-                    // تشغيل الفلاش تلقائياً في الإضاءة المنخفضة
-                    const brightness = window.matchMedia('(prefers-color-scheme: dark)');
-                    if (brightness.matches) {
-                        toggleFlash();
-                    }
-                }
-            }
-        }
-        
-        async function safeStopScanner() {
-            try {
-                await html5QrScanner.stop();
-                isScanning = false;
-            } catch (error) {
-                console.error('خطأ إيقاف الماسح:', error);
-            }
-        }
-        
-        // ============== مستمعات الأحداث ==============
-        cameraSelect.addEventListener('change', async () => {
-            currentCameraIndex = cameraSelect.selectedIndex;
-            await startScanner(cameras[currentCameraIndex].id);
-        });
-        
-        manualInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') manualSearch();
-        });
-        
-        // استعادة آخر مسح عند تحميل الصفحة
-        window.addEventListener('load', () => {
-            const lastScan = localStorage.getItem('lastBarcodeScan');
-            if (lastScan) {
-                manualInput.value = lastScan;
-            }
-            
-            initScanner();
-        });
+        // بدء التشغيل عند تحميل الصفحة
+        window.onload = initScanner;
     </script>
 </body>
 </html>
