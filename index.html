@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>سكان باركود | الجندي برو</title>
+  <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <style>
+    body { font-family: Arial; text-align:center; margin-top:30px; direction: rtl; }
+    video { border:1px solid #ccc; width: 100%; max-width: 350px; }
+    #info { margin-top:10px; }
+  </style>
+</head>
+<body>
+  <h2>امسح باركود المنتج بالكاميرا</h2>
+  <video id="video"></video>
+  <p id="info">جاري تشغيل الكاميرا...</p>
+  <script>
+    const codeReader = new ZXing.BrowserMultiFormatReader();
+    const video = document.getElementById('video');
+    const info = document.getElementById('info');
+
+    codeReader.decodeFromVideoDevice(null, video, (result, err) => {
+      if (result) {
+        const barcode = result.text;
+        info.textContent = `📦 الباركود: ${barcode}`;
+        window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(barcode)}`;
+        codeReader.reset();
+      }
+    });
+  </script>
+</body>
+</html>
