@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قارئ الباركود | الجندي برو</title>
+    <title>قارئ الباركود - الجندي برو</title>
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@latest/dist/html5-qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -59,6 +59,12 @@
         #reader {
             width: 100%;
             position: relative;
+        }
+        
+        #reader video {
+            width: 100%;
+            height: auto;
+            display: block;
         }
         
         .scan-overlay {
@@ -301,7 +307,7 @@
     </div>
 
     <script>
-        // ====== المتغيرات العامة ======
+        // العناصر الرئيسية
         const statusEl = document.getElementById('status');
         const resultEl = document.getElementById('result');
         const barcodeValue = document.getElementById('barcodeValue');
@@ -318,13 +324,13 @@
         let isFlashOn = false;
         let lastResult = '';
         
-        // ====== تهيئة الماسح ======
+        // تهيئة الماسح
         async function initScanner() {
             try {
                 setStatus('loading', '⏳ جاري التحضير...');
                 
                 // 1. التحقق من دعم المتصفح
-                if (!isMediaDevicesSupported()) {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                     throw new Error('المتصفح لا يدعم الوصول إلى الكاميرا');
                 }
                 
@@ -345,7 +351,7 @@
             }
         }
         
-        // ====== بدء الماسح ======
+        // بدء الماسح
         async function startScanner(cameraId) {
             try {
                 setStatus('loading', '📷 جاري تشغيل الكاميرا...');
@@ -360,19 +366,44 @@
                 
                 // إعدادات متقدمة للمسح
                 const config = {
-                    fps: 15,
+                    fps: 10,
                     qrbox: { width: 250, height: 250 },
                     aspectRatio: 1.0,
                     disableFlip: false,
-                    formatsToSupport: getAllSupportedFormats()
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.UPC_E,
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.CODE_39,
+                        Html5QrcodeSupportedFormats.CODE_93,
+                        Html5QrcodeSupportedFormats.CODABAR,
+                        Html5QrcodeSupportedFormats.ITF,
+                        Html5QrcodeSupportedFormats.QR_CODE,
+                        Html5QrcodeSupportedFormats.DATA_MATRIX,
+                        Html5QrcodeSupportedFormats.PDF_417
+                    ]
                 };
                 
                 // بدء المسح
                 await html5QrScanner.start(
                     cameraId,
                     config,
-                    onScanSuccess,
-                    onScanError
+                    (decodedText, decodedResult) => {
+                        if (decodedText !== lastResult) {
+                            lastResult = decodedText;
+                            playBeep();
+                            showResult(decodedText);
+                            redirectToProduct(decodedText);
+                        }
+                    },
+                    (errorMessage) => {
+                        // تجاهل الأخطاء الروتينية
+                        if (!errorMessage.includes('NotFoundException')) {
+                            console.warn('تحذير المسح:', errorMessage);
+                        }
+                    }
                 );
                 
                 setStatus('ready', '✅ جاهز للمسح - قرب الباركود من الكاميرا');
@@ -385,24 +416,16 @@
             }
         }
         
-        // ====== معالجة النتائج ======
-        function onScanSuccess(decodedText, decodedResult) {
-            if (decodedText !== lastResult) {
-                lastResult = decodedText;
-                playBeep();
-                showResult(decodedText);
-                redirectToProduct(decodedText);
+        // إيقاف الماسح بأمان
+        async function safeStopScanner() {
+            try {
+                await html5QrScanner.stop();
+            } catch (error) {
+                console.error('خطأ إيقاف الماسح:', error);
             }
         }
         
-        function onScanError(errorMessage) {
-            // تجاهل الأخطاء الروتينية
-            if (!errorMessage.includes('NotFoundException')) {
-                console.warn('تحذير المسح:', errorMessage);
-            }
-        }
-        
-        // ====== التحكم في الكاميرا ======
+        // تبديل الكاميرا
         async function switchCamera() {
             if (cameras.length < 2) {
                 showAlert('يوجد كاميرا واحدة فقط متاحة');
@@ -414,6 +437,7 @@
             await startScanner(cameras[currentCameraIndex].id);
         }
         
+        // إعادة تشغيل الماسح
         async function restartScanner() {
             if (cameras.length > 0) {
                 await startScanner(cameras[currentCameraIndex].id);
@@ -422,7 +446,7 @@
             }
         }
         
-        // ====== التحكم في الفلاش ======
+        // التحكم في الفلاش
         async function toggleFlash() {
             if (!currentTrack) {
                 showAlert('الكاميرا غير جاهزة');
@@ -446,7 +470,7 @@
             }
         }
         
-        // ====== البحث اليدوي ======
+        // البحث اليدوي
         function manualSearch() {
             const code = manualInput.value.trim();
             if (code) {
@@ -457,26 +481,80 @@
             }
         }
         
-        // ====== عرض النتائج ======
+        // عرض النتيجة
         function showResult(code) {
             barcodeValue.textContent = code;
             resultEl.style.display = 'block';
             setStatus('ready', '✅ تم العثور على باركود: ' + code);
         }
         
-        // ====== التوجيه إلى المنتج ======
+        // التوجيه إلى صفحة المنتج
         function redirectToProduct(barcode) {
             setTimeout(() => {
                 window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(barcode)}`;
             }, 1500);
         }
         
-        // ====== وظائف مساعدة ======
+        // تشغيل صوت عند المسح
+        function playBeep() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 800;
+                gainNode.gain.value = 0.3;
+                
+                oscillator.start();
+                setTimeout(() => {
+                    oscillator.stop();
+                }, 200);
+            } catch (e) {
+                console.log('تعذر تشغيل الصوت:', e);
+            }
+        }
+        
+        // إعداد واجهة الكاميرا
+        function setupCameraUI() {
+            if (cameras.length > 1) {
+                cameraSelect.style.display = 'block';
+                cameraSelect.innerHTML = '';
+                
+                cameras.forEach((camera, index) => {
+                    const option = document.createElement('option');
+                    option.value = camera.id;
+                    option.text = camera.label || `الكاميرا ${index + 1}`;
+                    if (index === currentCameraIndex) option.selected = true;
+                    cameraSelect.appendChild(option);
+                });
+                
+                switchBtn.disabled = false;
+            }
+        }
+        
+        // إعداد التحكم في الفلاش
+        function setupFlashControl() {
+            const videoElement = document.querySelector('#reader video');
+            if (videoElement && videoElement.srcObject) {
+                currentTrack = videoElement.srcObject.getVideoTracks()[0];
+                
+                if (currentTrack && currentTrack.getCapabilities().torch) {
+                    flashBtn.disabled = false;
+                }
+            }
+        }
+        
+        // تعيين حالة الماسح
         function setStatus(type, message) {
             statusEl.className = `status status-${type}`;
             statusEl.innerHTML = message;
         }
         
+        // عرض رسالة تنبيه
         function showAlert(message) {
             const alertDiv = document.createElement('div');
             alertDiv.style.position = 'fixed';
@@ -500,62 +578,21 @@
             }, 3000);
         }
         
-        function playBeep() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                oscillator.type = 'sine';
-                oscillator.frequency.value = 800;
-                gainNode.gain.value = 0.3;
-                
-                oscillator.start();
-                setTimeout(() => {
-                    oscillator.stop();
-                }, 200);
-            } catch (e) {
-                console.log('تعذر تشغيل الصوت:', e);
-            }
-        }
-        
-        function getAllSupportedFormats() {
-            return [
-                Html5QrcodeSupportedFormats.UPC_A,
-                Html5QrcodeSupportedFormats.UPC_E,
-                Html5QrcodeSupportedFormats.EAN_13,
-                Html5QrcodeSupportedFormats.EAN_8,
-                Html5QrcodeSupportedFormats.CODE_128,
-                Html5QrcodeSupportedFormats.CODE_39,
-                Html5QrcodeSupportedFormats.CODE_93,
-                Html5QrcodeSupportedFormats.CODABAR,
-                Html5QrcodeSupportedFormats.ITF,
-                Html5QrcodeSupportedFormats.QR_CODE,
-                Html5QrcodeSupportedFormats.DATA_MATRIX,
-                Html5QrcodeSupportedFormats.PDF_417
-            ];
-        }
-        
-        function isMediaDevicesSupported() {
-            return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-        }
-        
-        // ====== إدارة الأخطاء ======
+        // معالجة أخطاء التهيئة
         function handleInitError(error) {
             console.error('خطأ التهيئة:', error);
             setStatus('error', `❌ ${getErrorMessage(error)}`);
             enableManualInput();
         }
         
+        // معالجة أخطاء البدء
         function handleStartError(error) {
             console.error('خطأ بدء الماسح:', error);
             setStatus('error', `❌ ${getErrorMessage(error)}`);
             enableManualInput();
         }
         
+        // الحصول على رسالة الخطأ
         function getErrorMessage(error) {
             const errorMap = {
                 'NotAllowedError': 'تم رفض الإذن بالوصول إلى الكاميرا',
@@ -568,50 +605,14 @@
             return errorMap[error.name] || error.message || 'حدث خطأ غير متوقع';
         }
         
+        // تفعيل الإدخال اليدوي
         function enableManualInput() {
             manualInput.disabled = false;
             manualInput.placeholder = 'استخدم الإدخال اليدوي بسبب مشكلة الكاميرا';
             manualInput.focus();
         }
         
-        // ====== إعدادات واجهة المستخدم ======
-        function setupCameraUI() {
-            if (cameras.length > 1) {
-                cameraSelect.style.display = 'block';
-                cameraSelect.innerHTML = '';
-                
-                cameras.forEach((camera, index) => {
-                    const option = document.createElement('option');
-                    option.value = camera.id;
-                    option.text = camera.label || `الكاميرا ${index + 1}`;
-                    if (index === currentCameraIndex) option.selected = true;
-                    cameraSelect.appendChild(option);
-                });
-                
-                switchBtn.disabled = false;
-            }
-        }
-        
-        function setupFlashControl() {
-            const videoElement = document.querySelector('#reader video');
-            if (videoElement && videoElement.srcObject) {
-                currentTrack = videoElement.srcObject.getVideoTracks()[0];
-                
-                if (currentTrack && currentTrack.getCapabilities().torch) {
-                    flashBtn.disabled = false;
-                }
-            }
-        }
-        
-        async function safeStopScanner() {
-            try {
-                await html5QrScanner.stop();
-            } catch (error) {
-                console.error('خطأ إيقاف الماسح:', error);
-            }
-        }
-        
-        // ====== مستمعات الأحداث ======
+        // مستمعات الأحداث
         cameraSelect.addEventListener('change', async () => {
             currentCameraIndex = cameraSelect.selectedIndex;
             await startScanner(cameras[currentCameraIndex].id);
