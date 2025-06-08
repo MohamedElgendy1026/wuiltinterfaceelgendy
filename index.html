@@ -14,14 +14,14 @@
     }
 
     #reader {
-      width: 300px;
+      width: 320px;
       margin: 0 auto;
       position: relative;
     }
 
     .laser {
       position: absolute;
-      top: 50%;
+      top: 10%;
       left: 5%;
       width: 90%;
       height: 2px;
@@ -62,6 +62,8 @@
     <div class="laser"></div>
   </div>
 
+  <button onclick="toggleFlash()">تشغيل/إيقاف الفلاش 🔦</button><br>
+
   <div id="status">📷 انتظر... بنشغل الكاميرا</div>
 
   <input type="text" id="manualInput" placeholder="أدخل الباركود يدويًا">
@@ -73,40 +75,67 @@
   <script>
     const beep = document.getElementById('beep');
     const status = document.getElementById('status');
+    let html5QrScanner;
+    let currentTrack;
 
     function onScanSuccess(decodedText, decodedResult) {
       beep.play();
       status.textContent = `✅ تم قراءة الباركود: ${decodedText}`;
-      html5QrcodeScanner.clear();
-      setTimeout(() => {
+      html5QrScanner.stop().then(() => {
         window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(decodedText)}`;
-      }, 1000);
+      });
     }
 
     function onScanError(errorMessage) {
       status.textContent = `❌ جاري المسح...`;
     }
 
-    const html5QrcodeScanner = new Html5Qrcode("reader");
-    html5QrcodeScanner.start(
-      { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 250 }
-      },
-      onScanSuccess,
-      onScanError
-    ).catch(err => {
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length) {
+        const cameraId = devices[0].id;
+        html5QrScanner = new Html5Qrcode("reader");
+        html5QrScanner.start(
+          cameraId,
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 }
+          },
+          onScanSuccess,
+          onScanError
+        ).then(() => {
+          status.textContent = "📷 الكاميرا شغالة، امسح الباركود...";
+          // ناخد التراك علشان نتحكم في الفلاش
+          const stream = document.querySelector("video").srcObject;
+          currentTrack = stream.getVideoTracks()[0];
+        });
+      }
+    }).catch(err => {
       status.textContent = "❌ تعذر تشغيل الكاميرا";
-      console.error("Camera error:", err);
+      console.error(err);
     });
+
+    function toggleFlash() {
+      if (currentTrack) {
+        const capabilities = currentTrack.getCapabilities();
+        if (capabilities.torch) {
+          const current = currentTrack.getSettings().torch || false;
+          currentTrack.applyConstraints({
+            advanced: [{ torch: !current }]
+          });
+        } else {
+          alert("⚠️ الجهاز لا يدعم تشغيل الفلاش");
+        }
+      } else {
+        alert("📷 الكاميرا مش شغالة لسه");
+      }
+    }
 
     function manualSearch() {
       const input = document.getElementById('manualInput').value.trim();
       if (input) {
         window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(input)}`;
       } else {
-        alert("اكتب الباركود الأول");
+        alert("❗ اكتب الباركود الأول");
       }
     }
   </script>
