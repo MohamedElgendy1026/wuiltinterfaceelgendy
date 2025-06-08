@@ -3,56 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <title>سكان باركود | الجندي برو</title>
-  <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.9/html5-qrcode.min.js"></script>
   <style>
     body {
       font-family: Arial;
       text-align: center;
-      background: #f8f8f8;
-      margin: 0;
-      padding: 20px;
+      background: #f0f0f0;
       direction: rtl;
+      padding: 20px;
     }
 
-    h2 {
-      color: #222;
+    #reader {
+      width: 300px;
+      margin: 0 auto;
+      position: relative;
     }
 
-    #video {
-      width: 100%;
-      max-width: 320px;
-      border: 2px solid #333;
-      border-radius: 10px;
-      margin-top: 10px;
+    .laser {
+      position: absolute;
+      top: 50%;
+      left: 5%;
+      width: 90%;
+      height: 2px;
+      background: red;
+      animation: scan 2s infinite;
+      z-index: 5;
     }
 
-    #info {
-      margin-top: 15px;
-      font-size: 16px;
-      color: #444;
+    @keyframes scan {
+      0% { top: 10%; }
+      50% { top: 90%; }
+      100% { top: 10%; }
     }
 
     input {
-      padding: 8px;
-      width: 80%;
-      max-width: 300px;
-      margin-top: 15px;
+      margin-top: 20px;
+      padding: 10px;
       font-size: 16px;
+      width: 250px;
     }
 
     button {
-      padding: 8px 14px;
+      padding: 10px 16px;
       font-size: 14px;
       margin-top: 10px;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <h2>امسح الباركود أو اكتبه يدويًا</h2>
-  <video id="video" autoplay muted playsinline></video>
-  <div id="info">جاري تحميل الكاميرا...</div>
 
-  <button onclick="toggleFlash()">تشغيل/إيقاف الفلاش 🔦</button><br>
+  <div id="reader">
+    <div class="laser"></div>
+  </div>
+
+  <div id="status">📷 انتظر... بنشغل الكاميرا</div>
 
   <input type="text" id="manualInput" placeholder="أدخل الباركود يدويًا">
   <br>
@@ -61,57 +71,35 @@
   <audio id="beep" src="https://www.soundjay.com/buttons/sounds/beep-07.mp3" preload="auto"></audio>
 
   <script>
-    const video = document.getElementById('video');
-    const info = document.getElementById('info');
     const beep = document.getElementById('beep');
-    let currentStream;
-    let track;
+    const status = document.getElementById('status');
 
-    const codeReader = new ZXing.BrowserMultiFormatReader();
-
-    navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { exact: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }
-    }).then(stream => {
-      video.srcObject = stream;
-      currentStream = stream;
-      track = stream.getVideoTracks()[0];
-      info.textContent = "📷 الكاميرا شغالة، امسح الباركود...";
-
-      codeReader.decodeFromVideoElement(video, (result, err) => {
-        if (result) {
-          const barcode = result.text;
-          beep.play();
-          info.textContent = `✅ تم قراءة الباركود: ${barcode}`;
-          codeReader.reset();
-          setTimeout(() => {
-            window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(barcode)}`;
-          }, 1000);
-        }
-      });
-    }).catch(err => {
-      console.error("Camera error:", err);
-      info.textContent = "❌ تعذر تشغيل الكاميرا";
-    });
-
-    function toggleFlash() {
-      if (track) {
-        const capabilities = track.getCapabilities();
-        if (capabilities.torch) {
-          const settings = track.getSettings();
-          track.applyConstraints({
-            advanced: [{ torch: !settings.torch }]
-          });
-        } else {
-          alert("⚠️ جهازك لا يدعم الفلاش");
-        }
-      } else {
-        alert("📷 شغل الكاميرا الأول قبل تشغيل الفلاش");
-      }
+    function onScanSuccess(decodedText, decodedResult) {
+      beep.play();
+      status.textContent = `✅ تم قراءة الباركود: ${decodedText}`;
+      html5QrcodeScanner.clear();
+      setTimeout(() => {
+        window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(decodedText)}`;
+      }, 1000);
     }
+
+    function onScanError(errorMessage) {
+      status.textContent = `❌ جاري المسح...`;
+    }
+
+    const html5QrcodeScanner = new Html5Qrcode("reader");
+    html5QrcodeScanner.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: { width: 250, height: 250 }
+      },
+      onScanSuccess,
+      onScanError
+    ).catch(err => {
+      status.textContent = "❌ تعذر تشغيل الكاميرا";
+      console.error("Camera error:", err);
+    });
 
     function manualSearch() {
       const input = document.getElementById('manualInput').value.trim();
