@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>مسح باركود – الجندي برو</title>
+  <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <style>
+    body { font-family: Arial; text-align:center; margin-top:30px; }
+    video { border:1px solid #ccc; }
+    #info { margin-top:10px; }
+  </style>
+</head>
+<body>
+  <h2>امسح باركود المنتج بالكاميرا</h2>
+  <video id="video" width="300" height="200"></video>
+  <p id="info">بيفتح الكاميرا... استنى شويه</p>
+  <script>
+    const codeReader = new ZXing.BrowserMultiFormatReader();
+    const video = document.getElementById('video');
+    const info = document.getElementById('info');
+
+    codeReader.decodeFromVideoDevice(null, video, (result, err) => {
+      if (result) {
+        let barcode = result.text;
+        info.textContent = `٩️⃣ باركود: ${barcode} - بنحولّك…`;
+        window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(barcode)}`;
+        codeReader.reset();
+      } else if (err && !(err instanceof ZXing.NotFoundException)) {
+        console.error(err);
+        info.textContent = "فيه مشكلة في قراءة الباركود.";
+      }
+    });
+  </script>
+</body>
+</html>
