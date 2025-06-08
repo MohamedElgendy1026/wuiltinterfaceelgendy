@@ -5,26 +5,76 @@
   <title>سكان باركود | الجندي برو</title>
   <script src="https://unpkg.com/@zxing/library@latest"></script>
   <style>
-    body { font-family: Arial; text-align:center; margin-top:30px; direction: rtl; }
-    video { border:1px solid #ccc; width: 100%; max-width: 350px; }
-    #info { margin-top:10px; }
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #f8f8f8;
+      margin: 0;
+      padding: 20px;
+      direction: rtl;
+    }
+
+    h2 {
+      color: #222;
+      margin-bottom: 10px;
+    }
+
+    #video-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    #video {
+      width: 100%;
+      max-width: 320px;
+      border: 2px solid #333;
+      border-radius: 10px;
+    }
+
+    /* مستطيل التوجيه */
+    #scan-box {
+      position: absolute;
+      top: 30%;
+      left: 10%;
+      width: 80%;
+      height: 40%;
+      border: 2px dashed red;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+
+    #info {
+      margin-top: 15px;
+      font-size: 16px;
+      color: #444;
+    }
   </style>
 </head>
 <body>
-  <h2>امسح باركود المنتج بالكاميرا</h2>
-  <video id="video"></video>
+  <h2>امسح الباركود بالكاميرا</h2>
+  <div id="video-wrapper">
+    <video id="video" muted autoplay></video>
+    <div id="scan-box"></div>
+  </div>
   <p id="info">جاري تشغيل الكاميرا...</p>
+
   <script>
-    const codeReader = new ZXing.BrowserMultiFormatReader();
     const video = document.getElementById('video');
     const info = document.getElementById('info');
+
+    const codeReader = new ZXing.BrowserMultiFormatReader();
 
     codeReader.decodeFromVideoDevice(null, video, (result, err) => {
       if (result) {
         const barcode = result.text;
-        info.textContent = `📦 الباركود: ${barcode}`;
-        window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(barcode)}`;
+        info.textContent = `✅ الباركود: ${barcode} - جارٍ التحويل...`;
         codeReader.reset();
+
+        // حول المستخدم لصفحة البحث على موقعك
+        window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(barcode)}`;
+      } else if (err && !(err instanceof ZXing.NotFoundException)) {
+        console.error(err);
+        info.textContent = '❌ حصلت مشكلة في قراءة الباركود';
       }
     });
   </script>
