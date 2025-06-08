@@ -14,9 +14,17 @@
     }
 
     #reader {
-      width: 320px;
+      width: 100%;
+      max-width: 500px;
       margin: 0 auto;
       position: relative;
+      border: 3px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #reader video {
+      width: 100%;
     }
 
     .laser {
@@ -25,9 +33,10 @@
       left: 5%;
       width: 90%;
       height: 2px;
-      background: red;
+      background: rgba(255, 0, 0, 0.7);
       animation: scan 2s infinite;
       z-index: 5;
+      box-shadow: 0 0 10px red;
     }
 
     @keyframes scan {
@@ -36,35 +45,93 @@
       100% { top: 10%; }
     }
 
+    .controls {
+      margin: 20px auto;
+      max-width: 500px;
+    }
+
     input {
       margin-top: 20px;
-      padding: 10px;
+      padding: 12px;
       font-size: 16px;
-      width: 250px;
+      width: 100%;
+      max-width: 400px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
     }
 
     button {
-      padding: 10px 16px;
-      font-size: 14px;
-      margin-top: 10px;
+      padding: 12px 20px;
+      font-size: 16px;
+      margin: 10px 5px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
     }
 
     #status {
-      margin-top: 15px;
+      margin: 15px auto;
       font-weight: bold;
+      padding: 10px;
+      border-radius: 5px;
+      max-width: 500px;
+    }
+
+    .loading {
+      color: #007bff;
+    }
+
+    .success {
+      color: #28a745;
+      background-color: #e8f5e9;
+    }
+
+    .error {
+      color: #dc3545;
+      background-color: #f8d7da;
+    }
+
+    #cameraSelect {
+      margin: 10px 0;
+      padding: 10px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .scanner-container {
+      position: relative;
     }
   </style>
 </head>
 <body>
   <h2>امسح الباركود أو اكتبه يدويًا</h2>
 
-  <div id="reader">
-    <div class="laser"></div>
+  <div class="scanner-container">
+    <div id="reader">
+      <div class="laser"></div>
+    </div>
+    <select id="cameraSelect" style="display:none;"></select>
   </div>
 
-  <button onclick="toggleFlash()">تشغيل/إيقاف الفلاش 🔦</button><br>
+  <div class="controls">
+    <button onclick="toggleFlash()">تشغيل/إيقاف الفلاش 🔦</button>
+    <button onclick="switchCamera()">تبديل الكاميرا 🔄</button>
+    <button onclick="restartScanner()">إعادة تشغيل الماسح ♻️</button>
+  </div>
 
-  <div id="status">📷 انتظر... بنشغل الكاميرا</div>
+  <div id="status" class="loading">📷 جاري تهيئة الماسح...</div>
 
   <input type="text" id="manualInput" placeholder="أدخل الباركود يدويًا">
   <br>
@@ -75,45 +142,146 @@
   <script>
     const beep = document.getElementById('beep');
     const status = document.getElementById('status');
+    const cameraSelect = document.getElementById('cameraSelect');
     let html5QrScanner;
     let currentTrack;
+    let cameras = [];
+    let currentCameraIndex = 0;
+    let isScanning = false;
+
+    // تهيئة الماسح الضوئي
+    function initScanner(cameraId) {
+      if (html5QrScanner && isScanning) {
+        html5QrScanner.stop().then(() => {
+          startScanner(cameraId);
+        }).catch(err => {
+          console.error("Error stopping scanner:", err);
+          startScanner(cameraId);
+        });
+      } else {
+        startScanner(cameraId);
+      }
+    }
+
+    function startScanner(cameraId) {
+      status.textContent = "📷 جاري تشغيل الكاميرا...";
+      status.className = "loading";
+      
+      html5QrScanner = new Html5Qrcode("reader");
+      html5QrScanner.start(
+        cameraId,
+        {
+          fps: 15,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+          disableFlip: false
+        },
+        onScanSuccess,
+        onScanError
+      ).then(() => {
+        isScanning = true;
+        status.textContent = "📷 الكاميرا جاهزة، امسح الباركود...";
+        status.className = "success";
+        
+        // الحصول على مسار الفيديو للتحكم في الفلاش
+        const stream = document.querySelector("video").srcObject;
+        if (stream) {
+          currentTrack = stream.getVideoTracks()[0];
+        }
+      }).catch(err => {
+        console.error("Error starting scanner:", err);
+        status.textContent = "❌ تعذر تشغيل الكاميرا: " + err.message;
+        status.className = "error";
+        isScanning = false;
+      });
+    }
 
     function onScanSuccess(decodedText, decodedResult) {
       beep.play();
       status.textContent = `✅ تم قراءة الباركود: ${decodedText}`;
-      html5QrScanner.stop().then(() => {
+      status.className = "success";
+      
+      // إيقاف الماسح قبل التوجيه للنتائج
+      if (html5QrScanner && isScanning) {
+        html5QrScanner.stop().then(() => {
+          isScanning = false;
+          window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(decodedText)}`;
+        }).catch(err => {
+          console.error("Error stopping scanner:", err);
+          window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(decodedText)}`;
+        });
+      } else {
         window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(decodedText)}`;
-      });
+      }
     }
 
     function onScanError(errorMessage) {
-      status.textContent = `❌ جاري المسح...`;
+      // لا نعرض رسالة الخطأ باستمرار لتجنب التشتيت
+      if (!status.textContent.includes("جاهزة")) {
+        status.textContent = `❌ جاري المسح...`;
+        status.className = "error";
+      }
     }
 
-    Html5Qrcode.getCameras().then(devices => {
-      if (devices && devices.length) {
-        const cameraId = devices[0].id;
-        html5QrScanner = new Html5Qrcode("reader");
-        html5QrScanner.start(
-          cameraId,
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 250 }
-          },
-          onScanSuccess,
-          onScanError
-        ).then(() => {
-          status.textContent = "📷 الكاميرا شغالة، امسح الباركود...";
-          // ناخد التراك علشان نتحكم في الفلاش
-          const stream = document.querySelector("video").srcObject;
-          currentTrack = stream.getVideoTracks()[0];
-        });
-      }
-    }).catch(err => {
-      status.textContent = "❌ تعذر تشغيل الكاميرا";
-      console.error(err);
-    });
+    // الحصول على قائمة الكاميرات المتاحة
+    function getCameras() {
+      Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+          cameras = devices;
+          
+          // إذا كان هناك أكثر من كاميرا، نعرض قائمة الاختيار
+          if (cameras.length > 1) {
+            cameraSelect.style.display = "block";
+            cameraSelect.innerHTML = "";
+            cameras.forEach((camera, index) => {
+              const option = document.createElement("option");
+              option.value = camera.id;
+              option.text = camera.label || `الكاميرا ${index + 1}`;
+              if (index === currentCameraIndex) {
+                option.selected = true;
+              }
+              cameraSelect.appendChild(option);
+            });
+          }
+          
+          // بدء الماسح بالكاميرا الأولى
+          initScanner(cameras[currentCameraIndex].id);
+        } else {
+          status.textContent = "❌ لا توجد كاميرات متاحة";
+          status.className = "error";
+        }
+      }).catch(err => {
+        console.error("Error getting cameras:", err);
+        status.textContent = "❌ تعذر الوصول إلى الكاميرات";
+        status.className = "error";
+      });
+    }
 
+    // تبديل الكاميرا
+    function switchCamera() {
+      if (cameras.length < 2) {
+        alert("⚠️ يوجد كاميرا واحدة فقط متاحة");
+        return;
+      }
+      
+      currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+      initScanner(cameras[currentCameraIndex].id);
+      
+      if (cameraSelect) {
+        cameraSelect.selectedIndex = currentCameraIndex;
+      }
+    }
+
+    // إعادة تشغيل الماسح
+    function restartScanner() {
+      if (cameras.length > 0) {
+        initScanner(cameras[currentCameraIndex].id);
+      } else {
+        getCameras();
+      }
+    }
+
+    // التحكم في الفلاش
     function toggleFlash() {
       if (currentTrack) {
         const capabilities = currentTrack.getCapabilities();
@@ -121,23 +289,47 @@
           const current = currentTrack.getSettings().torch || false;
           currentTrack.applyConstraints({
             advanced: [{ torch: !current }]
+          }).then(() => {
+            console.log("Flash toggled:", !current);
+          }).catch(err => {
+            console.error("Error toggling flash:", err);
+            alert("⚠️ حدث خطأ في التحكم في الفلاش");
           });
         } else {
           alert("⚠️ الجهاز لا يدعم تشغيل الفلاش");
         }
       } else {
-        alert("📷 الكاميرا مش شغالة لسه");
+        alert("📷 الكاميرا غير جاهزة بعد أو لا تدعم الفلاش");
       }
     }
 
+    // البحث اليدوي
     function manualSearch() {
       const input = document.getElementById('manualInput').value.trim();
       if (input) {
         window.location.href = `https://www.elgendypro.com/search?query=${encodeURIComponent(input)}`;
       } else {
-        alert("❗ اكتب الباركود الأول");
+        alert("❗ الرجاء إدخال الباركود أولاً");
       }
     }
+
+    // السماح بإدخال الباركود يدوياً بالضغط على Enter
+    document.getElementById('manualInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        manualSearch();
+      }
+    });
+
+    // تغيير الكاميرا من القائمة المنسدلة
+    cameraSelect.addEventListener('change', function() {
+      currentCameraIndex = this.selectedIndex;
+      initScanner(cameras[currentCameraIndex].id);
+    });
+
+    // بدء التشغيل عند تحميل الصفحة
+    window.onload = function() {
+      getCameras();
+    };
   </script>
 </body>
 </html>
