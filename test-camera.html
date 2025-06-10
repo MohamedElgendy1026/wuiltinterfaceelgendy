@@ -588,50 +588,168 @@
       }
     }
 
-   async function stopScanner() {
+    async function startBackCamera() {
       try {
-        if (html5QrCode && html5QrCode.isScanning) {
-          await html5QrCode.stop();
-          currentStream = null;
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length) {
+          // البحث عن الكاميرا الخلفية أولاً
+          const backCameraDevice = findBackCamera(devices);
+          currentCameraId = backCameraDevice ? backCameraDevice.id : devices[0].id;
+          
+          // إعدادات الكاميرا المحسنة
+          const qrConfig = {
+            fps: 20,
+            qrbox: (width, height) => {
+              // جعل إطار المسح يتناسب مع نسبة الكاميرا
+              const minDimension = Math.min(width, height);
+              const size = Math.floor(minDimension * 1.0);
+              return {
+                width: size,
+                height: size * 1.0 // نسبة الطول إلى العرض للإطار
+              };
+            },
+            rememberLastUsedCamera: true,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+            videoConstraints: {
+              facingMode: { exact: "environment" }, // استخدام exact بدلاً من ideal
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            }
+          };
+          
+          await html5QrCode.start(
+            currentCameraId,
+            qrConfig,
+            onScanSuccess,
+            () => console.log("جاري المسح...")
+          ).then(() => {
+            currentStream = html5Qrcode.getRunningTrackCapabilities();
+            updateCameraFeedback();
+          });
+        } else {
+          showError("لا توجد كاميرا متاحة");
+          document.getElementById('manualInput').focus();
         }
       } catch (error) {
-        console.error("خطأ في إيقاف الماسح:", error);
-        throw error;
+        console.error("خطأ في تشغيل الكاميرا:", error);
+        showError("فشل في تشغيل الكاميرا. يرجى استخدام الإدخال اليدوي.");
+        document.getElementById('manualInput').focus();
       }
     }
 
-    // إضافة دالة لفحص دعم الفلاش
-    function checkFlashSupport() {
-      return new Promise((resolve) => {
-        if (!('mediaDevices' in navigator) {
-          resolve(false);
-          return;
-        }
-
-        navigator.mediaDevices.getUserMedia({ video: true })
-          .then(stream => {
-            const track = stream.getVideoTracks()[0];
-            const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-            const hasFlash = 'torch' in capabilities || 'fillLightMode' in capabilities;
-            track.stop();
-            resolve(hasFlash);
-          })
-          .catch(() => resolve(false));
+    function findBackCamera(devices) {
+      // تحسين اكتشاف الكاميرا الخلفية
+      const backCameras = devices.filter(device => {
+        const label = device.label.toLowerCase();
+        return label.includes("back") || 
+               label.includes("rear") || 
+               label.includes("environment") ||
+               label.includes("1") || 
+               label.includes("bck") ||
+               (device.label.includes("1") && devices.length > 1) ||
+               (device.label.includes("0") && devices.length === 1); // إذا كان هناك كاميرا واحدة فقط
       });
+      
+      return backCameras.length > 0 ? backCameras[0] : null;
     }
 
-    // تحسين دالة toggleFlash للتحقق من الدعم أولاً
+    function findFrontCamera(devices) {
+      const frontCameras = devices.filter(device => {
+        const label = device.label.toLowerCase();
+        return label.includes("front") || 
+               label.includes("user") ||
+               label.includes("face") ||
+               (device.label.includes("0") && devices.length > 1) ||
+               (device.label.includes("2") && devices.length > 2) ||
+               (device.label.includes("1") && devices.length === 1); // إذا كان هناك كاميرا واحدة فقط
+      });
+      
+      return frontCameras.length > 0 ? frontCameras[0] : null;
+    }
+
+    function onScanSuccess(decodedText) {
+      const now = Date.now();
+      if (now - lastScanTime < SCAN_COOLDOWN) return; // منع المسح المتكرر السريع
+      lastScanTime = now;
+      
+      // تنظيف النص الممسوح
+      const cleanText = decodedText.trim();
+      if (!cleanText) return;
+      
+      // تشغيل صوت المسح الناجح
+      if (soundEnabled) {
+        const scanSound = document.getElementById('scanSound');
+        const successSound = document.getElementById('successSound');
+        scanSound.currentTime = 0;
+        scanSound.play().catch(e => console.log("لا يمكن تشغيل الصوت:", e));
+        setTimeout(() => {
+          successSound.currentTime = 0;
+          successSound.play().catch(e => console.log("لا يمكن تشغيل الصوت:", e));
+        }, 200);
+      }
+      
+      // إظهار علامة التأكيد في المنتصف
+      showScanSuccess(cleanText);
+      
+      // إيقاف الماسح مؤقتاً أثناء التوجيه
+      html5QrCode.pause();
+      
+      // إيقاف مؤقت قبل التوجيه لرؤية النتيجة
+      clearTimeout(scanAnimation);
+      scanAnimation = setTimeout(() => {
+        window.location.href = elgendyBaseUrl + encodeURIComponent(cleanText);
+      }, 1500);
+    }
+
+    function showScanSuccess(code) {
+      // إزالة أي علامة تأكيد سابقة
+      const existingSuccess = document.querySelector('.scan-success');
+      if (existingSuccess) existingSuccess.remove();
+      
+      // إنشاء علامة التأكيد الجديدة
+      const successDiv = document.createElement('div');
+      successDiv.className = 'scan-success';
+      successDiv.innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>تم المسح بنجاح</span>
+      `;
+      
+      // إضافة علامة التأكيد إلى الماسح
+      document.querySelector('.scanner-container').appendChild(successDiv);
+      
+      // إخفاء علامة التأكيد بعد 1.5 ثانية
+      setTimeout(() => {
+        successDiv.style.opacity = '0';
+        successDiv.style.transition = 'opacity 0.3s ease-out';
+        setTimeout(() => successDiv.remove(), 300);
+      }, 1200);
+    }
+
+    function searchProduct() {
+      const code = document.getElementById("manualInput").value.trim();
+      if (code) {
+        // تشغيل صوت النجاح عند البحث اليدوي
+        if (soundEnabled) {
+          const successSound = document.getElementById('successSound');
+          successSound.currentTime = 0;
+          successSound.play().catch(e => console.log("لا يمكن تشغيل الصوت:", e));
+        }
+        
+        // إظهار علامة التأكيد للبحث اليدوي
+        showScanSuccess(code);
+        
+        setTimeout(() => {
+          window.location.href = elgendyBaseUrl + encodeURIComponent(code);
+        }, 1000);
+      } else {
+        showError("الرجاء إدخال رقم الباركود");
+      }
+    }
+
     async function toggleFlash() {
       if (!html5QrCode || !currentCameraId) return;
       
       try {
-        // التحقق من دعم الفلاش قبل المحاولة
-        const flashSupported = await checkFlashSupport();
-        if (!flashSupported) {
-          showError("هذا الجهاز لا يدعم خاصية الفلاش");
-          return;
-        }
-
         flashEnabled = !flashEnabled;
         const flashBtn = document.querySelector('.btn-primary');
         const flashIcon = document.getElementById('flash-icon');
@@ -647,6 +765,7 @@
           flashText.textContent = 'تشغيل الفلاش';
         }
         
+        // تحسين التحكم في الفلاش
         await html5QrCode.applyVideoConstraints({
           advanced: [
             {torch: flashEnabled},
@@ -654,88 +773,63 @@
           ]
         });
       } catch (error) {
-        console.error("خطأ في التحكم بالفلاش:", error);
+        console.error("لا يدعم الفلاش:", error);
         flashEnabled = false;
-        showError("حدث خطأ في التحكم بالفلاش");
+        showError("هذا الجهاز لا يدعم خاصية الفلاش");
       }
     }
 
-    // إضافة دالة لتحسين اكتشاف الكاميرات
-    async function getCamerasWithRetry(maxRetries = 3, delay = 1000) {
-      let retries = 0;
-      
-      while (retries < maxRetries) {
-        try {
-          const devices = await Html5Qrcode.getCameras();
-          if (devices && devices.length > 0) {
-            return devices;
-          }
-        } catch (error) {
-          console.warn(`محاولة ${retries + 1} فشلت في الحصول على الكاميرات`, error);
-        }
-        
-        retries++;
-        if (retries < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      }
-      
-      throw new Error("فشل في الحصول على الكاميرات بعد عدة محاولات");
-    }
-
-    // تحسين دالة initScanner
-    async function initScanner() {
+    async function switchCamera() {
       try {
-        html5QrCode = new Html5Qrcode("reader");
-        
-        // إظهار رسالة تحميل محسنة
+        // إظهار رسالة تحميل أثناء تبديل الكاميرات
         const loading = document.getElementById('loading');
-        loading.querySelector('p').textContent = 'جاري تهيئة الماسح الضوئي...';
+        loading.style.display = 'flex';
+        loading.querySelector('p').textContent = 'جاري تبديل الكاميرا...';
         
-        // التحقق من دعم الفلاش مسبقاً
-        const flashSupported = await checkFlashSupport();
-        if (!flashSupported) {
-          document.getElementById('flash-icon').style.opacity = '0.5';
-          document.getElementById('flash-text').textContent = 'الفلاش غير مدعوم';
+        await stopScanner();
+        backCamera = !backCamera;
+        
+        if (backCamera) {
+          await startBackCamera();
+          document.getElementById('camera-text').textContent = 'الكاميرا الأمامية';
+        } else {
+          await startFrontCamera();
+          document.getElementById('camera-text').textContent = 'الكاميرا الخلفية';
         }
         
-        await startBackCamera();
-        loading.style.display = 'none';
         updateCameraFeedback();
+        loading.style.display = 'none';
       } catch (error) {
-        console.error("خطأ في التهيئة:", error);
-        const loadingText = document.getElementById('loading').querySelector('p');
-        loadingText.textContent = "حدث خطأ في تحميل الماسح. يرجى التأكد من السماح باستخدام الكاميرا.";
-        
-        setTimeout(() => {
-          document.getElementById('loading').style.display = 'none';
-          document.getElementById('manualInput').focus();
-          showError("تعذر الوصول للكاميرا. الرجاء استخدام الإدخال اليدوي.");
-        }, 3000);
+        console.error("خطأ في تبديل الكاميرا:", error);
+        showError("فشل في تبديل الكاميرا");
+        document.getElementById('loading').style.display = 'none';
       }
     }
 
-    // تحسين دالة startBackCamera
-    async function startBackCamera() {
+    async function startFrontCamera() {
       try {
-        const devices = await getCamerasWithRetry();
+        const devices = await Html5Qrcode.getCameras();
         if (devices && devices.length) {
-          const backCameraDevice = findBackCamera(devices);
-          currentCameraId = backCameraDevice ? backCameraDevice.id : devices[0].id;
+          // البحث عن الكاميرا الأمامية
+          const frontCameraDevice = findFrontCamera(devices);
+          currentCameraId = frontCameraDevice ? frontCameraDevice.id : devices[0].id;
           
           const qrConfig = {
-            fps: 15,
+            fps: 20,
             qrbox: (width, height) => {
               const minDimension = Math.min(width, height);
-              const size = Math.floor(minDimension * 0.8);
-              return { width: size, height: size * 0.6 };
+              const size = Math.floor(minDimension * 0.7);
+              return {
+                width: size,
+                height: size * 0.6
+              };
             },
             rememberLastUsedCamera: true,
             supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
             videoConstraints: {
-              facingMode: { exact: "environment" },
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
+              facingMode: { exact: "user" }, // استخدام exact بدلاً من ideal
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
             }
           };
           
@@ -745,7 +839,7 @@
             onScanSuccess,
             () => console.log("جاري المسح...")
           ).then(() => {
-            currentStream = html5QrCode.getRunningTrackCapabilities();
+            currentStream = html5Qrcode.getRunningTrackCapabilities();
             updateCameraFeedback();
           });
         } else {
@@ -753,101 +847,47 @@
           document.getElementById('manualInput').focus();
         }
       } catch (error) {
-        console.error("خطأ في تشغيل الكاميرا:", error);
+        console.error("خطأ في تشغيل الكاميرا الأمامية:", error);
         throw error;
       }
     }
 
-    // تحسين دالة onScanSuccess
-    function onScanSuccess(decodedText) {
-      const now = Date.now();
-      if (now - lastScanTime < SCAN_COOLDOWN) return;
-      lastScanTime = now;
-      
-      const cleanText = decodedText.trim();
-      if (!cleanText) return;
-      
-      // إظهار النتيجة قبل التوجيه
-      showResult(cleanText);
-      
-      if (soundEnabled) {
-        playScanSounds();
-      }
-      
-      showScanSuccess(cleanText);
-      html5QrCode.pause();
-      
-      clearTimeout(scanAnimation);
-      scanAnimation = setTimeout(() => {
-        redirectToProduct(cleanText);
-      }, 1500);
-    }
-
-    function playScanSounds() {
-      const scanSound = document.getElementById('scanSound');
-      const successSound = document.getElementById('successSound');
-      
+    async function stopScanner() {
       try {
-        scanSound.currentTime = 0;
-        scanSound.play().catch(e => console.log("لا يمكن تشغيل صوت المسح:", e));
-        
-        setTimeout(() => {
-          successSound.currentTime = 0;
-          successSound.play().catch(e => console.log("لا يمكن تشغيل صوت النجاح:", e));
-        }, 200);
-      } catch (e) {
-        console.error("خطأ في تشغيل الأصوات:", e);
+        if (html5QrCode && html5QrCode.isScanning) {
+          await html5QrCode.stop();
+          currentStream = null;
+        }
+      } catch (error) {
+        console.error("خطأ في إيقاف الماسح:", error);
+        throw error;
       }
     }
 
-    function showResult(code) {
+    function updateCameraFeedback() {
+      const feedbackElement = document.getElementById('cameraFeedback');
+      if (backCamera) {
+        feedbackElement.innerHTML = '<i class="fas fa-camera"></i> <span>الكاميرا الخلفية</span>';
+      } else {
+        feedbackElement.innerHTML = '<i class="fas fa-mobile-alt"></i> <span>الكاميرا الأمامية</span>';
+      }
+    }
+
+    function showError(message) {
       const resultElement = document.getElementById('result');
       resultElement.innerHTML = `
-        <i class="fas fa-barcode" style="font-size: 24px; margin-bottom: 8px;"></i>
-        <div>تم مسح الباركود: ${code}</div>
-        <small>جاري التوجيه...</small>
+        <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 8px;"></i>
+        <div>${message}</div>
       `;
       resultElement.style.display = 'block';
-      resultElement.style.backgroundColor = 'var(--success-color)';
+      resultElement.style.backgroundColor = 'var(--accent-color)';
       resultElement.style.color = 'white';
+      
+      // إخفاء الرسالة بعد 1 ثواني
+      setTimeout(() => {
+        resultElement.style.display = 'none';
+      }, 3000);
     }
-
-    function redirectToProduct(code) {
-      // يمكن إضافة تحقق إضافي هنا قبل التوجيه
-      window.location.href = elgendyBaseUrl + encodeURIComponent(code);
-    }
-
-    // إضافة معالجة أفضل لأخطاء الكاميرا
-    function handleCameraError(error) {
-      console.error("خطأ في الكاميرا:", error);
-      let errorMessage = "حدث خطأ غير متوقع في الكاميرا";
-      
-      if (error.name === 'NotAllowedError') {
-        errorMessage = "تم رفض الإذن باستخدام الكاميرا. يرجى منح الإذن ثم تحديث الصفحة.";
-      } else if (error.name === 'NotFoundError') {
-        errorMessage = "لم يتم العثور على كاميرا متاحة.";
-      } else if (error.name === 'NotSupportedError') {
-        errorMessage = "المتصفح أو الجهاز لا يدعم هذه الميزة.";
-      } else if (error.name === 'NotReadableError') {
-        errorMessage = "تعذر الوصول للكاميرا. قد تكون قيد الاستخدام من قبل تطبيق آخر.";
-      }
-      
-      showError(errorMessage);
-      document.getElementById('manualInput').focus();
-    }
-
-    // تعديل event listener لمعالجة الأخطاء
-    document.addEventListener('DOMContentLoaded', function() {
-      initScanner().catch(handleCameraError);
-      
-      document.getElementById('manualInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          searchProduct();
-        }
-      });
-      
-      document.getElementById('soundToggle').addEventListener('click', toggleSound);
-    });
   </script>
 </body>
 </html>
