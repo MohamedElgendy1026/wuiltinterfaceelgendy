@@ -602,7 +602,7 @@
             qrbox: (width, height) => {
               // جعل إطار المسح يتناسب مع نسبة الكاميرا
               const minDimension = Math.min(width, height);
-              const size = Math.floor(minDimension * 0.7);
+              const size = Math.floor(minDimension * 0.5);
               return {
                 width: size,
                 height: size * 1.5 // نسبة الطول إلى العرض للإطار
