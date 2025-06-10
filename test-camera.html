@@ -272,6 +272,50 @@
       box-shadow: var(--box-shadow);
     }
     
+    /* علامة التأكيد الجديدة */
+    .scan-success {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 120px;
+      height: 120px;
+      background-color: rgba(16, 185, 129, 0.9);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      animation: pulse 1s ease-out;
+      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.7);
+    }
+    
+    .scan-success i {
+      font-size: 48px;
+      color: white;
+      margin-bottom: 8px;
+      animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .scan-success span {
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    @keyframes pulse {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.1); }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+    
+    @keyframes scaleIn {
+      0% { transform: scale(0); }
+      80% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -317,6 +361,10 @@
       border-top-color: var(--primary-color);
       animation: spin 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
       margin-bottom: 24px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
     
     .camera-feedback {
@@ -406,6 +454,19 @@
       .search-input, .search-btn {
         padding: 14px;
       }
+      
+      .scan-success {
+        width: 100px;
+        height: 100px;
+      }
+      
+      .scan-success i {
+        font-size: 36px;
+      }
+      
+      .scan-success span {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
@@ -470,6 +531,7 @@
   <div id="result"></div>
 
   <audio id="scanSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+  <audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" preload="auto"></audio>
 
   <script>
     const elgendyBaseUrl = "https://elgendypro.com/ar/product/all/";
@@ -540,10 +602,10 @@
             qrbox: (width, height) => {
               // جعل إطار المسح يتناسب مع نسبة الكاميرا
               const minDimension = Math.min(width, height);
-              const size = Math.floor(minDimension * 1.);
+              const size = Math.floor(minDimension * 0.7);
               return {
                 width: size,
-                height: size * .8 // نسبة الطول إلى العرض للإطار
+                height: size * 0.6 // نسبة الطول إلى العرض للإطار
               };
             },
             rememberLastUsedCamera: true,
@@ -617,19 +679,17 @@
       // تشغيل صوت المسح الناجح
       if (soundEnabled) {
         const scanSound = document.getElementById('scanSound');
+        const successSound = document.getElementById('successSound');
         scanSound.currentTime = 0;
         scanSound.play().catch(e => console.log("لا يمكن تشغيل الصوت:", e));
+        setTimeout(() => {
+          successSound.currentTime = 0;
+          successSound.play().catch(e => console.log("لا يمكن تشغيل الصوت:", e));
+        }, 200);
       }
       
-      const resultElement = document.getElementById('result');
-      resultElement.innerHTML = `
-        <i class="fas fa-check-circle" style="font-size: 24px; margin-bottom: 8px;"></i>
-        <div>تم مسح الباركود بنجاح</div>
-        <div style="font-size: 14px; margin-top: 8px; font-weight: 500;">${cleanText}</div>
-      `;
-      resultElement.style.display = 'block';
-      resultElement.style.backgroundColor = 'var(--success-color)';
-      resultElement.style.color = 'white';
+      // إظهار علامة التأكيد في المنتصف
+      showScanSuccess(cleanText);
       
       // إيقاف الماسح مؤقتاً أثناء التوجيه
       html5QrCode.pause();
@@ -638,24 +698,49 @@
       clearTimeout(scanAnimation);
       scanAnimation = setTimeout(() => {
         window.location.href = elgendyBaseUrl + encodeURIComponent(cleanText);
-      }, 1000);
+      }, 1500);
+    }
+
+    function showScanSuccess(code) {
+      // إزالة أي علامة تأكيد سابقة
+      const existingSuccess = document.querySelector('.scan-success');
+      if (existingSuccess) existingSuccess.remove();
+      
+      // إنشاء علامة التأكيد الجديدة
+      const successDiv = document.createElement('div');
+      successDiv.className = 'scan-success';
+      successDiv.innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>تم المسح بنجاح</span>
+      `;
+      
+      // إضافة علامة التأكيد إلى الماسح
+      document.querySelector('.scanner-container').appendChild(successDiv);
+      
+      // إخفاء علامة التأكيد بعد 1.5 ثانية
+      setTimeout(() => {
+        successDiv.style.opacity = '0';
+        successDiv.style.transition = 'opacity 0.3s ease-out';
+        setTimeout(() => successDiv.remove(), 300);
+      }, 1200);
     }
 
     function searchProduct() {
       const code = document.getElementById("manualInput").value.trim();
       if (code) {
-        const resultElement = document.getElementById('result');
-        resultElement.innerHTML = `
-          <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 8px;"></i>
-          <div>جاري البحث عن المنتج...</div>
-        `;
-        resultElement.style.display = 'block';
-        resultElement.style.backgroundColor = 'var(--secondary-color)';
-        resultElement.style.color = 'white';
+        // تشغيل صوت النجاح عند البحث اليدوي
+        if (soundEnabled) {
+          const successSound = document.getElementById('successSound');
+          successSound.currentTime = 0;
+          successSound.play().catch(e => console.log("لا يمكن تشغيل الصوت:", e));
+        }
+        
+        // إظهار علامة التأكيد للبحث اليدوي
+        showScanSuccess(code);
         
         setTimeout(() => {
           window.location.href = elgendyBaseUrl + encodeURIComponent(code);
-        }, 300);
+        }, 1000);
       } else {
         showError("الرجاء إدخال رقم الباركود");
       }
