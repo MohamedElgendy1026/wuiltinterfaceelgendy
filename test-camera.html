@@ -5,142 +5,333 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>قارئ باركود - الجندي برو</title>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --accent-color: #e74c3c;
+      --light-color: #ecf0f1;
+      --dark-color: #2c3e50;
+      --success-color: #2ecc71;
+      --warning-color: #f39c12;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
+      font-family: 'Tajawal', sans-serif;
+      background-color: var(--light-color);
+      color: var(--dark-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       padding: 20px;
-      background-color: #f2f2f2;
     }
-    #reader {
-      width: 300px;
-      margin: 0 auto;
-      position: relative;
+    
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      width: 100%;
     }
-    input, button {
-      padding: 10px;
-      margin-top: 10px;
+    
+    .header h1 {
+      color: var(--primary-color);
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    
+    .header p {
+      color: #7f8c8d;
       font-size: 16px;
     }
-    button {
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
-    .controls {
-      margin: 15px 0;
-    }
-    .flash-btn, .camera-switch {
-      padding: 8px 12px;
-      margin: 0 5px;
-      background-color: #2196F3;
-    }
-    .flash-btn.active {
-      background-color: #FF9800;
-    }
-    #scanner-container {
+    
+    .scanner-wrapper {
+      width: 100%;
+      max-width: 400px;
       position: relative;
-      margin: 20px auto;
-      width: 300px;
-      height: 300px;
+      margin: 20px 0;
+      border-radius: 16px;
       overflow: hidden;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     }
-    #scan-line {
+    
+    #reader {
+      width: 100%;
+      height: 400px;
+      background-color: #000;
+      position: relative;
+    }
+    
+    .scanner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+    }
+    
+    .scan-frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      height: 200px;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.7);
+    }
+    
+    .scan-line {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 4px;
-      background-color: red;
-      box-shadow: 0 0 10px rgba(255,0,0,0.7);
+      background: linear-gradient(to bottom, transparent, var(--accent-color), transparent);
       animation: scan 2s linear infinite;
-      z-index: 100;
+      z-index: 11;
     }
+    
     @keyframes scan {
-      0% { top: 0; }
-      100% { top: 100%; }
+      0% { top: 0; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
     }
-    .scan-frame {
-      position: absolute;
-      border: 2px solid rgba(255, 255, 255, 0.7);
-      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.5);
-      z-index: 1;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 80%;
-      height: 40%;
-    }
+    
     .corner {
       position: absolute;
       width: 30px;
       height: 30px;
-      border-color: red;
+      border-color: var(--accent-color);
       border-style: solid;
-      z-index: 2;
+      z-index: 12;
     }
+    
     .corner-tl {
       top: 0;
       left: 0;
       border-width: 4px 0 0 4px;
     }
+    
     .corner-tr {
       top: 0;
       right: 0;
       border-width: 4px 4px 0 0;
     }
+    
     .corner-bl {
       bottom: 0;
       left: 0;
       border-width: 0 0 4px 4px;
     }
+    
     .corner-br {
       bottom: 0;
       right: 0;
       border-width: 0 4px 4px 0;
     }
+    
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px 0;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background-color: var(--secondary-color);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #2980b9;
+      transform: translateY(-2px);
+    }
+    
+    .btn-warning {
+      background-color: var(--warning-color);
+      color: white;
+    }
+    
+    .btn-warning:hover {
+      background-color: #e67e22;
+      transform: translateY(-2px);
+    }
+    
+    .btn.active {
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    }
+    
+    .manual-search {
+      width: 100%;
+      max-width: 400px;
+      margin-top: 20px;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 16px;
+      margin-bottom: 10px;
+      transition: border 0.3s;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: var(--secondary-color);
+    }
+    
+    .search-btn {
+      width: 100%;
+      padding: 15px;
+      background-color: var(--success-color);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .search-btn:hover {
+      background-color: #27ae60;
+      transform: translateY(-2px);
+    }
+    
     #result {
       margin-top: 20px;
-      padding: 10px;
-      background-color: #e8f5e9;
-      border-radius: 5px;
+      padding: 15px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      font-weight: 700;
       display: none;
+      animation: fadeIn 0.5s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      color: white;
+      font-size: 18px;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--secondary-color);
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 480px) {
+      .scanner-wrapper {
+        height: 300px;
+      }
+      
+      .header h1 {
+        font-size: 24px;
+      }
+      
+      .btn {
+        padding: 10px 15px;
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 <body>
-  <h2>ابحث عن منتج بالباركود</h2>
-
-  <!-- عناصر التحكم -->
-  <div class="controls">
-    <button class="flash-btn" onclick="toggleFlash()">🔦 تشغيل/إيقاف الفلاش</button>
-    <button class="camera-switch" onclick="switchCamera()">🔄 تبديل الكاميرا</button>
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>جاري تحميل الماسح الضوئي...</p>
   </div>
 
-  <!-- قارئ الباركود -->
-  <div id="scanner-container">
-    <div class="scan-frame">
-      <div class="corner corner-tl"></div>
-      <div class="corner corner-tr"></div>
-      <div class="corner corner-bl"></div>
-      <div class="corner corner-br"></div>
-      <div id="scan-line"></div>
-    </div>
+  <div class="header">
+    <h1>قارئ الباركود الذكي</h1>
+    <p>امسح باركود المنتج للوصول إلى تفاصيله</p>
+  </div>
+
+  <div class="scanner-wrapper">
     <div id="reader"></div>
+    <div class="scanner-overlay">
+      <div class="scan-frame">
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+        <div class="scan-line"></div>
+      </div>
+    </div>
   </div>
 
-  <!-- بحث يدوي -->
-  <div>
-    <input type="text" id="manualInput" placeholder="اكتب رقم الباركود">
-    <button onclick="searchProduct()">بحث</button>
+  <div class="controls">
+    <button class="btn btn-primary" onclick="toggleFlash()">
+      <span id="flash-icon">🔦</span>
+      <span id="flash-text">تشغيل الفلاش</span>
+    </button>
+    <button class="btn btn-warning" onclick="switchCamera()">
+      <span id="camera-icon">🔄</span>
+      <span id="camera-text">تبديل الكاميرا</span>
+    </button>
   </div>
 
-  <!-- نتيجة المسح -->
+  <div class="manual-search">
+    <input type="text" class="search-input" id="manualInput" placeholder="أدخل رقم الباركود يدوياً">
+    <button class="search-btn" onclick="searchProduct()">بحث عن المنتج</button>
+  </div>
+
   <div id="result"></div>
 
   <script>
@@ -148,14 +339,78 @@
     let html5QrCode;
     let currentCameraId;
     let flashEnabled = false;
-    let backCamera = false;
+    let backCamera = true; // نبدأ بالكاميرا الخلفية أولاً
     let scanAnimation;
+    let currentStream;
+
+    // تهيئة الماسح عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', function() {
+      initScanner();
+    });
+
+    async function initScanner() {
+      try {
+        html5QrCode = new Html5Qrcode("reader");
+        await startBackCamera();
+        document.getElementById('loading').style.display = 'none';
+      } catch (error) {
+        console.error("خطأ في التهيئة:", error);
+        document.getElementById('loading').querySelector('p').textContent = 
+          "حدث خطأ في تحميل الماسح. يرجى التأكد من السماح باستخدام الكاميرا.";
+      }
+    }
+
+    async function startBackCamera() {
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length) {
+          // البحث عن الكاميرا الخلفية أولاً
+          const backCameraDevice = findBackCamera(devices);
+          currentCameraId = backCameraDevice ? backCameraDevice.id : devices[0].id;
+          
+          const qrConfig = {
+            fps: 10,
+            qrbox: { width: 250, height: 150 },
+            rememberLastUsedCamera: true,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+          };
+          
+          await html5QrCode.start(
+            currentCameraId,
+            qrConfig,
+            onScanSuccess,
+            () => console.log("جاري المسح...")
+          );
+          
+          // حفظ المرجع للستريم للتحكم في الفلاش لاحقاً
+          currentStream = html5QrCode.getRunningTrackCapabilities();
+        } else {
+          showError("لا توجد كاميرا متاحة");
+        }
+      } catch (error) {
+        console.error("خطأ في تشغيل الكاميرا:", error);
+        showError("فشل في تشغيل الكاميرا. يرجى المحاولة مرة أخرى.");
+      }
+    }
+
+    function findBackCamera(devices) {
+      // محاولة العثور على الكاميرا الخلفية بأفضل طريقة ممكنة
+      const backCameras = devices.filter(device => 
+        device.label.toLowerCase().includes("back") || 
+        device.label.toLowerCase().includes("rear") || 
+        device.label.toLowerCase().includes("environment") ||
+        (device.label.includes("1") && devices.length > 1) // افتراض أن الكاميرا الثانية هي الخلفية
+      );
+      
+      return backCameras.length > 0 ? backCameras[0] : null;
+    }
 
     function onScanSuccess(decodedText) {
       const resultElement = document.getElementById('result');
-      resultElement.textContent = `تم مسح الباركود: ${decodedText}`;
+      resultElement.textContent = `تم مسح الباركود بنجاح: ${decodedText}`;
       resultElement.style.display = 'block';
-      resultElement.style.backgroundColor = '#e8f5e9';
+      resultElement.style.backgroundColor = 'var(--success-color)';
+      resultElement.style.color = 'white';
       
       // إيقاف مؤقت قبل التوجيه لرؤية النتيجة
       clearTimeout(scanAnimation);
@@ -165,97 +420,128 @@
     }
 
     function searchProduct() {
-      const code = document.getElementById("manualInput").value;
-      if (code.trim() !== "") {
-        window.location.href = elgendyBaseUrl + code;
+      const code = document.getElementById("manualInput").value.trim();
+      if (code) {
+        const resultElement = document.getElementById('result');
+        resultElement.textContent = `جاري البحث عن المنتج...`;
+        resultElement.style.display = 'block';
+        resultElement.style.backgroundColor = 'var(--secondary-color)';
+        resultElement.style.color = 'white';
+        
+        setTimeout(() => {
+          window.location.href = elgendyBaseUrl + code;
+        }, 500);
       }
     }
 
-    function toggleFlash() {
+    async function toggleFlash() {
       if (!html5QrCode || !currentCameraId) return;
       
-      flashEnabled = !flashEnabled;
-      const flashBtn = document.querySelector('.flash-btn');
-      flashBtn.classList.toggle('active');
-      flashBtn.innerHTML = flashEnabled ? '🔆 إيقاف الفلاش' : '🔦 تشغيل الفلاش';
-      
-      html5QrCode.applyVideoConstraints({
-        advanced: [{torch: flashEnabled}]
-      }).then(() => {
-        console.log("تم تغيير حالة الفلاش");
-      }).catch(err => {
-        console.error("لا يدعم الفلاش", err);
-        flashEnabled = false;
-        flashBtn.classList.remove('active');
-        flashBtn.innerHTML = '🔦 تشغيل الفلاش';
-      });
-    }
-
-    function switchCamera() {
-      backCamera = !backCamera;
-      const cameraBtn = document.querySelector('.camera-switch');
-      cameraBtn.innerHTML = backCamera ? '📷 الكاميرا الأمامية' : '📷 الكاميرا الخلفية';
-      
-      stopScanner().then(() => {
-        startScanner();
-      });
-    }
-
-    function stopScanner() {
-      return html5QrCode.stop().then(() => {
-        console.log("تم إيقاف الماسح");
-      }).catch(err => {
-        console.error("خطأ في إيقاف الماسح", err);
-      });
-    }
-
-    function startScanner() {
-      Html5Qrcode.getCameras().then(devices => {
-        if (devices && devices.length) {
-          // ترتيب الكاميرات بحيث نختار الخلفية أولاً إذا كانت متاحة
-          devices.sort((a, b) => {
-            const aIsBack = a.label.toLowerCase().includes("back") || 
-                          a.label.toLowerCase().includes("rear") || 
-                          a.label.toLowerCase().includes("environment");
-            const bIsBack = b.label.toLowerCase().includes("back") || 
-                          b.label.toLowerCase().includes("rear") || 
-                          b.label.toLowerCase().includes("environment");
-            
-            if (backCamera) return aIsBack ? -1 : 1;
-            else return aIsBack ? 1 : -1;
-          });
-          
-          currentCameraId = devices[0].id;
-          
-          const qrConfig = {
-            fps: 10,
-            qrbox: { width: 250, height: 100 },
-            rememberLastUsedCamera: true,
-            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
-          };
-          
-          html5QrCode.start(
-            currentCameraId,
-            qrConfig,
-            onScanSuccess,
-            () => console.log("جاري المسح...")
-          ).catch(err => {
-            console.error("فشل تشغيل الكاميرا", err);
-          });
+      try {
+        flashEnabled = !flashEnabled;
+        const flashBtn = document.querySelector('.btn-primary');
+        const flashIcon = document.getElementById('flash-icon');
+        const flashText = document.getElementById('flash-text');
+        
+        if (flashEnabled) {
+          flashBtn.classList.add('active');
+          flashIcon.textContent = '🔆';
+          flashText.textContent = 'إيقاف الفلاش';
+        } else {
+          flashBtn.classList.remove('active');
+          flashIcon.textContent = '🔦';
+          flashText.textContent = 'تشغيل الفلاش';
         }
-      }).catch(err => {
-        console.error("لا توجد كاميرا متاحة", err);
-        document.getElementById('result').textContent = "لا توجد كاميرا متاحة أو لم يتم السماح بالوصول إليها";
-        document.getElementById('result').style.display = 'block';
-        document.getElementById('result').style.backgroundColor = '#ffebee';
-      });
+        
+        await html5QrCode.applyVideoConstraints({
+          advanced: [{torch: flashEnabled}]
+        });
+      } catch (error) {
+        console.error("لا يدعم الفلاش:", error);
+        flashEnabled = false;
+        showError("هذا الجهاز لا يدعم خاصية الفلاش");
+      }
     }
 
-    // تهيئة الماسح عند التحميل
-    document.addEventListener('DOMContentLoaded', function() {
-      html5QrCode = new Html5Qrcode("reader");
-      startScanner();
-    });
+    async function switchCamera() {
+      backCamera = !backCamera;
+      const cameraBtn = document.querySelector('.btn-warning');
+      const cameraIcon = document.getElementById('camera-icon');
+      const cameraText = document.getElementById('camera-text');
+      
+      if (backCamera) {
+        cameraIcon.textContent = '📷';
+        cameraText.textContent = 'الكاميرا الأمامية';
+      } else {
+        cameraIcon.textContent = '📷';
+        cameraText.textContent = 'الكاميرا الخلفية';
+      }
+      
+      try {
+        await stopScanner();
+        if (backCamera) {
+          await startBackCamera();
+        } else {
+          await startFrontCamera();
+        }
+      } catch (error) {
+        console.error("خطأ في تبديل الكاميرا:", error);
+        showError("فشل في تبديل الكاميرا");
+      }
+    }
+
+    async function startFrontCamera() {
+      const devices = await Html5Qrcode.getCameras();
+      if (devices && devices.length) {
+        // البحث عن الكاميرا الأمامية
+        const frontCameraDevice = findFrontCamera(devices);
+        currentCameraId = frontCameraDevice ? frontCameraDevice.id : devices[0].id;
+        
+        const qrConfig = {
+          fps: 10,
+          qrbox: { width: 250, height: 150 },
+          rememberLastUsedCamera: true,
+          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+        };
+        
+        await html5QrCode.start(
+          currentCameraId,
+          qrConfig,
+          onScanSuccess,
+          () => console.log("جاري المسح...")
+        );
+      }
+    }
+
+    function findFrontCamera(devices) {
+      const frontCameras = devices.filter(device => 
+        device.label.toLowerCase().includes("front") || 
+        device.label.toLowerCase().includes("user") ||
+        (device.label.includes("0") && devices.length > 1) // افتراض أن الكاميرا الأولى هي الأمامية
+      );
+      
+      return frontCameras.length > 0 ? frontCameras[0] : null;
+    }
+
+    async function stopScanner() {
+      try {
+        if (html5QrCode && html5QrCode.isScanning) {
+          await html5QrCode.stop();
+          currentStream = null;
+        }
+      } catch (error) {
+        console.error("خطأ في إيقاف الماسح:", error);
+        throw error;
+      }
+    }
+
+    function showError(message) {
+      const resultElement = document.getElementById('result');
+      resultElement.textContent = message;
+      resultElement.style.display = 'block';
+      resultElement.style.backgroundColor = 'var(--accent-color)';
+      resultElement.style.color = 'white';
+    }
   </script>
 </body>
 </html>
