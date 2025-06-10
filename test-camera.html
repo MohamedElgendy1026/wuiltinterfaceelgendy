@@ -3,72 +3,277 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>قارئ باركود - الجندي برو</title>
+  <title>قارئ الباركود - الجندي برو</title>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary-color: #2c7be5;
+      --secondary-color: #00d97e;
+      --danger-color: #e63757;
+      --dark-color: #12263f;
+      --light-color: #f9fafd;
+    }
+    
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Tajawal', Arial, sans-serif;
       text-align: center;
-      padding: 20px;
-      background-color: #f2f2f2;
+      padding: 0;
+      margin: 0;
+      background-color: var(--light-color);
+      color: var(--dark-color);
     }
-    #reader {
-      width: 300px;
-      margin: 0 auto;
-      position: relative;
-    }
-    input, button {
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-    }
-    button {
-      cursor: pointer;
-      background-color: #4CAF50;
+    
+    .header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       color: white;
-      border: none;
-      border-radius: 4px;
+      padding: 20px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
-    .controls {
-      margin: 15px 0;
+    
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .flash-btn, .camera-switch {
-      padding: 8px 12px;
-      margin: 0 5px;
-      background-color: #2196F3;
+    
+    .logo i {
+      margin-left: 10px;
+      color: var(--secondary-color);
     }
-    .flash-btn.active {
-      background-color: #FF9800;
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
     }
+    
+    .scanner-section {
+      background-color: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      margin: 20px 0;
+    }
+    
     #scanner-container {
       position: relative;
       margin: 20px auto;
-      width: 300px;
+      width: 100%;
+      max-width: 400px;
       height: 300px;
       overflow: hidden;
-      border: 2px solid #ddd;
       border-radius: 8px;
+      border: 2px solid #e0e6ed;
+    }
+    
+    #reader {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    
+    .scan-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background-color: var(--danger-color);
+      box-shadow: 0 0 10px var(--danger-color);
+      animation: scan 2s linear infinite;
+      z-index: 10;
+    }
+    
+    @keyframes scan {
+      0% { top: 0; }
+      100% { top: 100%; }
+    }
+    
+    .scan-frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70%;
+      height: 40%;
+      border: 3px solid var(--primary-color);
+      border-radius: 8px;
+      z-index: 5;
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .btn-secondary {
+      background-color: var(--secondary-color);
+      color: white;
+    }
+    
+    .btn-danger {
+      background-color: var(--danger-color);
+      color: white;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .manual-search {
+      background-color: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .input-group {
+      display: flex;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    #manualInput {
+      flex: 1;
+      padding: 12px 15px;
+      border: 2px solid #e0e6ed;
+      border-radius: 6px 0 0 6px;
+      font-size: 16px;
+      outline: none;
+      transition: border 0.3s;
+    }
+    
+    #manualInput:focus {
+      border-color: var(--primary-color);
+    }
+    
+    .search-btn {
+      padding: 0 20px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 0 6px 6px 0;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+    
+    .search-btn:hover {
+      background-color: #1c6bd6;
+    }
+    
+    .status {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #6e84a3;
+    }
+    
+    .powered-by {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #95aac9;
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+      }
+      
+      .controls {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      #scanner-container {
+        height: 250px;
+      }
     }
   </style>
 </head>
 <body>
-  <h2>ابحث عن منتج بالباركود</h2>
-
-  <!-- عناصر التحكم -->
-  <div class="controls">
-    <button class="flash-btn" onclick="toggleFlash()">تشغيل/إيقاف الفلاش</button>
-    <button class="camera-switch" onclick="switchCamera()">تبديل الكاميرا</button>
+  <div class="header">
+    <div class="container">
+      <div class="logo">
+        <span>الجندي برو</span>
+        <i class="fas fa-barcode"></i>
+      </div>
+      <h1>قارئ الباركود الذكي</h1>
+    </div>
   </div>
 
-  <!-- قارئ الباركود -->
-  <div id="scanner-container">
-    <div id="reader"></div>
-  </div>
-
-  <!-- بحث يدوي -->
-  <div>
-    <input type="text" id="manualInput" placeholder="اكتب رقم الباركود">
-    <button onclick="searchProduct()">بحث</button>
+  <div class="container">
+    <div class="scanner-section">
+      <h2>مسح الباركود</h2>
+      <p>قومي بتوجيه الكاميرا نحو الباركود لمسحه تلقائياً</p>
+      
+      <div id="scanner-container">
+        <div id="reader"></div>
+        <div class="scan-line"></div>
+        <div class="scan-frame"></div>
+      </div>
+      
+      <div class="controls">
+        <button class="btn btn-primary" onclick="toggleFlash()">
+          <i class="fas fa-bolt"></i>
+          <span id="flash-text">تشغيل الفلاش</span>
+        </button>
+        <button class="btn btn-secondary" onclick="switchCamera()">
+          <i class="fas fa-camera-retro"></i>
+          <span id="camera-text">الكاميرا الخلفية</span>
+        </button>
+        <button class="btn btn-danger" onclick="stopScanner()">
+          <i class="fas fa-stop"></i>
+          إيقاف الماسح
+        </button>
+      </div>
+      
+      <div class="status" id="status">
+        جاهز للمسح...
+      </div>
+    </div>
+    
+    <div class="manual-search">
+      <h3>أو ابحث يدوياً</h3>
+      <div class="input-group">
+        <input type="text" id="manualInput" placeholder="أدخل رقم الباركود هنا">
+        <button class="search-btn" onclick="searchProduct()">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="powered-by">
+      نظام مسح الباركود - الجندي برو &copy; 2023
+    </div>
   </div>
 
   <script>
@@ -77,15 +282,24 @@
     let currentCameraId;
     let flashEnabled = false;
     let backCamera = false;
+    let scannerActive = true;
 
     function onScanSuccess(decodedText) {
-      window.location.href = elgendyBaseUrl + decodedText;
+      updateStatus(`تم مسح الباركود: ${decodedText}`);
+      setTimeout(() => {
+        window.location.href = elgendyBaseUrl + decodedText;
+      }, 1000);
     }
 
     function searchProduct() {
-      const code = document.getElementById("manualInput").value;
-      if (code.trim() !== "") {
-        window.location.href = elgendyBaseUrl + code;
+      const code = document.getElementById("manualInput").value.trim();
+      if (code !== "") {
+        updateStatus(`جاري البحث عن الباركود: ${code}`);
+        setTimeout(() => {
+          window.location.href = elgendyBaseUrl + code;
+        }, 500);
+      } else {
+        updateStatus("الرجاء إدخال رقم الباركود", true);
       }
     }
 
@@ -93,10 +307,17 @@
       if (!html5QrCode || !currentCameraId) return;
       
       flashEnabled = !flashEnabled;
-      document.querySelector('.flash-btn').classList.toggle('active');
+      const flashBtn = document.querySelector('.btn-primary');
+      const flashText = document.getElementById('flash-text');
       
-      // هذه الميزة تعتمد على دعم المتصفح والجهاز
-      // قد لا تعمل على جميع الأجهزة
+      if (flashEnabled) {
+        flashBtn.innerHTML = '<i class="fas fa-bolt"></i><span id="flash-text">إيقاف الفلاش</span>';
+        updateStatus("تم تشغيل الفلاش");
+      } else {
+        flashBtn.innerHTML = '<i class="fas fa-bolt"></i><span id="flash-text">تشغيل الفلاش</span>';
+        updateStatus("تم إيقاف الفلاش");
+      }
+      
       html5QrCode.applyVideoConstraints({
         advanced: [{torch: flashEnabled}]
       }).then(() => {
@@ -104,33 +325,49 @@
       }).catch(err => {
         console.error("لا يدعم الفلاش", err);
         flashEnabled = false;
-        document.querySelector('.flash-btn').classList.remove('active');
+        flashText.textContent = "تشغيل الفلاش";
+        updateStatus("هذا الجهاز لا يدعم الفلاش", true);
       });
     }
 
     function switchCamera() {
       backCamera = !backCamera;
+      const cameraText = document.getElementById('camera-text');
+      cameraText.textContent = backCamera ? "الكاميرا الأمامية" : "الكاميرا الخلفية";
+      
+      updateStatus(backCamera ? "جاري التبديل للكاميرا الخلفية" : "جاري التبديل للكاميرا الأمامية");
+      
       stopScanner().then(() => {
         startScanner();
       });
     }
 
     function stopScanner() {
+      if (!scannerActive) return Promise.resolve();
+      
+      scannerActive = false;
+      updateStatus("تم إيقاف الماسح");
       return html5QrCode.stop().then(() => {
         console.log("تم إيقاف الماسح");
+        document.querySelector('.scan-line').style.display = 'none';
       }).catch(err => {
         console.error("خطأ في إيقاف الماسح", err);
       });
     }
 
     function startScanner() {
+      scannerActive = true;
+      document.querySelector('.scan-line').style.display = 'block';
+      
       Html5Qrcode.getCameras().then(devices => {
         if (devices && devices.length) {
-          // تصفية الكاميرات حسب النوع (أمامية/خلفية)
+          updateStatus("جاري تشغيل الماسح...");
+          
+          // تصفية الكاميرات حسب النوع
           const facingMode = backCamera ? "environment" : "user";
           const camera = devices.find(device => 
             device.label.toLowerCase().includes(facingMode) || 
-            (backCamera && device.label.includes("back")) ||
+            (backCamera && (device.label.includes("back") || device.label.includes("rear")) ||
             (!backCamera && device.label.includes("front"))
           );
           
@@ -138,7 +375,7 @@
           
           const qrConfig = {
             fps: 10,
-            qrbox: 250,
+            qrbox: { width: 250, height: 250 },
             rememberLastUsedCamera: true,
             supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
           };
@@ -147,20 +384,39 @@
             currentCameraId,
             qrConfig,
             onScanSuccess,
-            () => console.log("جاري المسح...")
-          ).catch(err => {
+            () => updateStatus("جاري البحث عن باركود...")
+          ).then(() => {
+            updateStatus("جاهز للمسح");
+          }).catch(err => {
             console.error("فشل تشغيل الكاميرا", err);
+            updateStatus("فشل تشغيل الكاميرا", true);
           });
+        } else {
+          updateStatus("لا توجد كاميرا متاحة", true);
         }
       }).catch(err => {
-        console.error("لا توجد كاميرا متاحة", err);
+        console.error("خطأ في الحصول على الكاميرات", err);
+        updateStatus("خطأ في الوصول إلى الكاميرا", true);
       });
+    }
+
+    function updateStatus(message, isError = false) {
+      const statusElement = document.getElementById('status');
+      statusElement.textContent = message;
+      statusElement.style.color = isError ? 'var(--danger-color)' : 'var(--primary-color)';
     }
 
     // تهيئة الماسح عند التحميل
     document.addEventListener('DOMContentLoaded', function() {
       html5QrCode = new Html5Qrcode("reader");
       startScanner();
+      
+      // تفعيل البحث عند الضغط على Enter
+      document.getElementById('manualInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          searchProduct();
+        }
+      });
     });
   </script>
 </body>
