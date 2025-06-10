@@ -630,10 +630,6 @@
           showError("لا توجد كاميرا متاحة");
           document.getElementById('manualInput').focus();
         }
-      } catch (error) {
-        console.error("خطأ في تشغيل الكاميرا:", error);
-        showError("فشل في تشغيل الكاميرا. يرجى استخدام الإدخال اليدوي.");
-        document.getElementById('manualInput').focus();
       }
     }
 
