@@ -534,16 +534,24 @@
           const backCameraDevice = findBackCamera(devices);
           currentCameraId = backCameraDevice ? backCameraDevice.id : devices[0].id;
           
+          // إعدادات الكاميرا المحسنة
           const qrConfig = {
-            fps: 20, // زيادة معدل الإطارات لتحسين السرعة
-            qrbox: { width: 250, height: 150 },
+            fps: 20,
+            qrbox: (width, height) => {
+              // جعل إطار المسح يتناسب مع نسبة الكاميرا
+              const minDimension = Math.min(width, height);
+              const size = Math.floor(minDimension * 0.7);
+              return {
+                width: size,
+                height: size * 0.6 // نسبة الطول إلى العرض للإطار
+              };
+            },
             rememberLastUsedCamera: true,
             supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
             videoConstraints: {
-              facingMode: { ideal: "environment" },
+              facingMode: { exact: "environment" }, // استخدام exact بدلاً من ideal
               width: { ideal: 1920 },
-              height: { ideal: 1080 },
-              aspectRatio: { ideal: 1.7777777778 } // 16:9
+              height: { ideal: 1080 }
             }
           };
           
@@ -576,10 +584,25 @@
                label.includes("environment") ||
                label.includes("1") || 
                label.includes("bck") ||
-               (device.label.includes("1") && devices.length > 1);
+               (device.label.includes("1") && devices.length > 1) ||
+               (device.label.includes("0") && devices.length === 1); // إذا كان هناك كاميرا واحدة فقط
       });
       
       return backCameras.length > 0 ? backCameras[0] : null;
+    }
+
+    function findFrontCamera(devices) {
+      const frontCameras = devices.filter(device => {
+        const label = device.label.toLowerCase();
+        return label.includes("front") || 
+               label.includes("user") ||
+               label.includes("face") ||
+               (device.label.includes("0") && devices.length > 1) ||
+               (device.label.includes("2") && devices.length > 2) ||
+               (device.label.includes("1") && devices.length === 1); // إذا كان هناك كاميرا واحدة فقط
+      });
+      
+      return frontCameras.length > 0 ? frontCameras[0] : null;
     }
 
     function onScanSuccess(decodedText) {
@@ -672,78 +695,82 @@
     }
 
     async function switchCamera() {
-      backCamera = !backCamera;
-      const cameraBtn = document.querySelector('.btn-warning');
-      const cameraText = document.getElementById('camera-text');
-      
-      if (backCamera) {
-        cameraText.textContent = 'الكاميرا الأمامية';
-      } else {
-        cameraText.textContent = 'الكاميرا الخلفية';
-      }
-      
       try {
+        // إظهار رسالة تحميل أثناء تبديل الكاميرات
+        const loading = document.getElementById('loading');
+        loading.style.display = 'flex';
+        loading.querySelector('p').textContent = 'جاري تبديل الكاميرا...';
+        
         await stopScanner();
+        backCamera = !backCamera;
+        
         if (backCamera) {
           await startBackCamera();
+          document.getElementById('camera-text').textContent = 'الكاميرا الأمامية';
         } else {
           await startFrontCamera();
+          document.getElementById('camera-text').textContent = 'الكاميرا الخلفية';
         }
+        
         updateCameraFeedback();
+        loading.style.display = 'none';
       } catch (error) {
         console.error("خطأ في تبديل الكاميرا:", error);
         showError("فشل في تبديل الكاميرا");
+        document.getElementById('loading').style.display = 'none';
       }
     }
 
     async function startFrontCamera() {
-      const devices = await Html5Qrcode.getCameras();
-      if (devices && devices.length) {
-        // البحث عن الكاميرا الأمامية
-        const frontCameraDevice = findFrontCamera(devices);
-        currentCameraId = frontCameraDevice ? frontCameraDevice.id : devices[0].id;
-        
-        const qrConfig = {
-          fps: 20, // زيادة معدل الإطارات
-          qrbox: { width: 250, height: 150 },
-          rememberLastUsedCamera: true,
-          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-          videoConstraints: {
-            facingMode: { ideal: "user" },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            aspectRatio: { ideal: 1.7777777778 } // 16:9
-          }
-        };
-        
-        await html5Qrcode.start(
-          currentCameraId,
-          qrConfig,
-          onScanSuccess,
-          () => console.log("جاري المسح...")
-        ).then(() => {
-          currentStream = html5Qrcode.getRunningTrackCapabilities();
-          updateCameraFeedback();
-        });
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length) {
+          // البحث عن الكاميرا الأمامية
+          const frontCameraDevice = findFrontCamera(devices);
+          currentCameraId = frontCameraDevice ? frontCameraDevice.id : devices[0].id;
+          
+          const qrConfig = {
+            fps: 20,
+            qrbox: (width, height) => {
+              const minDimension = Math.min(width, height);
+              const size = Math.floor(minDimension * 0.7);
+              return {
+                width: size,
+                height: size * 0.6
+              };
+            },
+            rememberLastUsedCamera: true,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+            videoConstraints: {
+              facingMode: { exact: "user" }, // استخدام exact بدلاً من ideal
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            }
+          };
+          
+          await html5QrCode.start(
+            currentCameraId,
+            qrConfig,
+            onScanSuccess,
+            () => console.log("جاري المسح...")
+          ).then(() => {
+            currentStream = html5Qrcode.getRunningTrackCapabilities();
+            updateCameraFeedback();
+          });
+        } else {
+          showError("لا توجد كاميرا متاحة");
+          document.getElementById('manualInput').focus();
+        }
+      } catch (error) {
+        console.error("خطأ في تشغيل الكاميرا الأمامية:", error);
+        throw error;
       }
-    }
-
-    function findFrontCamera(devices) {
-      const frontCameras = devices.filter(device => {
-        const label = device.label.toLowerCase();
-        return label.includes("front") || 
-               label.includes("user") ||
-               label.includes("face") ||
-               (device.label.includes("0") && devices.length > 1);
-      });
-      
-      return frontCameras.length > 0 ? frontCameras[0] : null;
     }
 
     async function stopScanner() {
       try {
-        if (html5Qrcode && html5Qrcode.isScanning) {
-          await html5Qrcode.stop();
+        if (html5QrCode && html5QrCode.isScanning) {
+          await html5QrCode.stop();
           currentStream = null;
         }
       } catch (error) {
