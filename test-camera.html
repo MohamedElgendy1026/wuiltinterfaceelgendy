@@ -15,6 +15,7 @@
     #reader {
       width: 300px;
       margin: 0 auto;
+      position: relative;
     }
     input, button {
       padding: 10px;
@@ -23,14 +24,46 @@
     }
     button {
       cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    .controls {
+      margin: 15px 0;
+    }
+    .flash-btn, .camera-switch {
+      padding: 8px 12px;
+      margin: 0 5px;
+      background-color: #2196F3;
+    }
+    .flash-btn.active {
+      background-color: #FF9800;
+    }
+    #scanner-container {
+      position: relative;
+      margin: 20px auto;
+      width: 300px;
+      height: 300px;
+      overflow: hidden;
+      border: 2px solid #ddd;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
   <h2>ابحث عن منتج بالباركود</h2>
 
+  <!-- عناصر التحكم -->
+  <div class="controls">
+    <button class="flash-btn" onclick="toggleFlash()">تشغيل/إيقاف الفلاش</button>
+    <button class="camera-switch" onclick="switchCamera()">تبديل الكاميرا</button>
+  </div>
+
   <!-- قارئ الباركود -->
-  <div id="reader"></div>
+  <div id="scanner-container">
+    <div id="reader"></div>
+  </div>
 
   <!-- بحث يدوي -->
   <div>
@@ -40,6 +73,10 @@
 
   <script>
     const elgendyBaseUrl = "https://elgendypro.com/ar/product/all/";
+    let html5QrCode;
+    let currentCameraId;
+    let flashEnabled = false;
+    let backCamera = false;
 
     function onScanSuccess(decodedText) {
       window.location.href = elgendyBaseUrl + decodedText;
@@ -52,27 +89,78 @@
       }
     }
 
-    const html5QrCode = new Html5Qrcode("reader");
-    const qrConfig = {
-      fps: 10,
-      qrbox: 250,
-      rememberLastUsedCamera: true,
-      supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
-    };
+    function toggleFlash() {
+      if (!html5QrCode || !currentCameraId) return;
+      
+      flashEnabled = !flashEnabled;
+      document.querySelector('.flash-btn').classList.toggle('active');
+      
+      // هذه الميزة تعتمد على دعم المتصفح والجهاز
+      // قد لا تعمل على جميع الأجهزة
+      html5QrCode.applyVideoConstraints({
+        advanced: [{torch: flashEnabled}]
+      }).then(() => {
+        console.log("تم تغيير حالة الفلاش");
+      }).catch(err => {
+        console.error("لا يدعم الفلاش", err);
+        flashEnabled = false;
+        document.querySelector('.flash-btn').classList.remove('active');
+      });
+    }
 
-    Html5Qrcode.getCameras().then(devices => {
-      if (devices && devices.length) {
-        let cameraId = devices[0].id;
-        html5QrCode.start(
-          cameraId,
-          qrConfig,
-          onScanSuccess
-        ).catch(err => {
-          console.error("فشل تشغيل الكاميرا", err);
-        });
-      }
-    }).catch(err => {
-      console.error("مفيش كاميرا", err);
+    function switchCamera() {
+      backCamera = !backCamera;
+      stopScanner().then(() => {
+        startScanner();
+      });
+    }
+
+    function stopScanner() {
+      return html5QrCode.stop().then(() => {
+        console.log("تم إيقاف الماسح");
+      }).catch(err => {
+        console.error("خطأ في إيقاف الماسح", err);
+      });
+    }
+
+    function startScanner() {
+      Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+          // تصفية الكاميرات حسب النوع (أمامية/خلفية)
+          const facingMode = backCamera ? "environment" : "user";
+          const camera = devices.find(device => 
+            device.label.toLowerCase().includes(facingMode) || 
+            (backCamera && device.label.includes("back")) ||
+            (!backCamera && device.label.includes("front"))
+          );
+          
+          currentCameraId = camera ? camera.id : devices[0].id;
+          
+          const qrConfig = {
+            fps: 10,
+            qrbox: 250,
+            rememberLastUsedCamera: true,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+          };
+          
+          html5QrCode.start(
+            currentCameraId,
+            qrConfig,
+            onScanSuccess,
+            () => console.log("جاري المسح...")
+          ).catch(err => {
+            console.error("فشل تشغيل الكاميرا", err);
+          });
+        }
+      }).catch(err => {
+        console.error("لا توجد كاميرا متاحة", err);
+      });
+    }
+
+    // تهيئة الماسح عند التحميل
+    document.addEventListener('DOMContentLoaded', function() {
+      html5QrCode = new Html5Qrcode("reader");
+      startScanner();
     });
   </script>
 </body>
