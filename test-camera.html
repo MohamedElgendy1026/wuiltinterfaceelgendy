@@ -543,7 +543,7 @@
               const size = Math.floor(minDimension * 0.7);
               return {
                 width: size,
-                height: size * 0.6 // نسبة الطول إلى العرض للإطار
+                height: size * 1.6 // نسبة الطول إلى العرض للإطار
               };
             },
             rememberLastUsedCamera: true,
@@ -798,7 +798,7 @@
       resultElement.style.backgroundColor = 'var(--accent-color)';
       resultElement.style.color = 'white';
       
-      // إخفاء الرسالة بعد 3 ثواني
+      // إخفاء الرسالة بعد 1 ثواني
       setTimeout(() => {
         resultElement.style.display = 'none';
       }, 3000);
