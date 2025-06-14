@@ -1,808 +1,167 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>قارئ باركود - الجندي برو</title>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --primary-color: #2563eb;
-      --secondary-color: #3b82f6;
-      --accent-color: #ef4444;
-      --light-color: #f8fafc;
-      --dark-color: #1e293b;
-      --success-color: #10b981;
-      --warning-color: #f59e0b;
-      --border-radius: 12px;
-      --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background-color: var(--light-color);
-      color: var(--dark-color);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      line-height: 1.6;
-    }
-    
-    .header {
-      text-align: center;
-      margin-bottom: 20px;
-      width: 100%;
-      animation: fadeInDown 0.6s;
-    }
-    
-    .header h1 {
-      color: var(--primary-color);
-      font-size: 28px;
-      margin-bottom: 8px;
-      font-weight: 700;
-    }
-    
-    .header p {
-      color: #64748b;
-      font-size: 16px;
-      font-weight: 500;
-    }
-    
-    .scanner-container {
-      width: 100%;
-      max-width: 420px;
-      position: relative;
-      margin: 20px 0;
-      border-radius: var(--border-radius);
-      overflow: hidden;
-      box-shadow: var(--box-shadow);
-      background-color: #000;
-      animation: zoomIn 0.5s;
-    }
-    
-    #reader {
-      width: 100%;
-      height: 400px;
-      position: relative;
-      object-fit: cover;
-    }
-    
-    .scanner-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 10;
-      pointer-events: none;
-    }
-    
-    .scan-frame {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 80%;
-      height: 220px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 16px;
-      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.7);
-    }
-    
-    .scan-line {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(to bottom, 
-        transparent, 
-        rgba(239, 68, 68, 0.8), 
-        transparent);
-      animation: scan 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-      z-index: 11;
-    }
-    
-    @keyframes scan {
-      0% { top: 0; opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { top: 100%; opacity: 0; }
-    }
-    
-    .corner {
-      position: absolute;
-      width: 32px;
-      height: 32px;
-      border-color: var(--accent-color);
-      border-style: solid;
-      z-index: 12;
-    }
-    
-    .corner-tl {
-      top: 0;
-      left: 0;
-      border-width: 4px 0 0 4px;
-    }
-    
-    .corner-tr {
-      top: 0;
-      right: 0;
-      border-width: 4px 4px 0 0;
-    }
-    
-    .corner-bl {
-      bottom: 0;
-      left: 0;
-      border-width: 0 0 4px 4px;
-    }
-    
-    .corner-br {
-      bottom: 0;
-      right: 0;
-      border-width: 0 4px 4px 0;
-    }
-    
-    .controls {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      margin: 24px 0;
-      width: 100%;
-      max-width: 400px;
-    }
-    
-    .btn {
-      padding: 14px 24px;
-      border: none;
-      border-radius: var(--border-radius);
-      font-family: 'Tajawal', sans-serif;
-      font-weight: 700;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: var(--transition);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    .btn-primary {
-      background-color: var(--primary-color);
-      color: white;
-    }
-    
-    .btn-primary:hover {
-      background-color: #1d4ed8;
-      transform: translateY(-3px);
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    }
-    
-    .btn-warning {
-      background-color: var(--warning-color);
-      color: white;
-    }
-    
-    .btn-warning:hover {
-      background-color: #d97706;
-      transform: translateY(-3px);
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-    }
-    
-    .btn.active {
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-    }
-    
-    .btn i {
-      font-size: 18px;
-    }
-    
-    .manual-search {
-      width: 100%;
-      max-width: 400px;
-      margin-top: 16px;
-      animation: fadeInUp 0.6s;
-    }
-    
-    .search-input {
-      width: 100%;
-      padding: 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: var(--border-radius);
-      font-family: 'Tajawal', sans-serif;
-      font-size: 16px;
-      margin-bottom: 12px;
-      transition: var(--transition);
-      text-align: center;
-      background-color: white;
-    }
-    
-    .search-input:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-    }
-    
-    .search-btn {
-      width: 100%;
-      padding: 16px;
-      background-color: var(--success-color);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      font-family: 'Tajawal', sans-serif;
-      font-weight: 700;
-      font-size: 16px;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    
-    .search-btn:hover {
-      background-color: #0d9488;
-      transform: translateY(-3px);
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    }
-    
-    #result {
-      margin-top: 20px;
-      padding: 16px;
-      border-radius: var(--border-radius);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-      font-weight: 700;
-      display: none;
-      animation: fadeIn 0.5s;
-      box-shadow: var(--box-shadow);
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes zoomIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-    
-    .loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.9);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      color: white;
-      font-size: 18px;
-      animation: fadeIn 0.3s;
-    }
-    
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 5px solid rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      border-top-color: var(--primary-color);
-      animation: spin 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-      margin-bottom: 24px;
-    }
-    
-    .camera-feedback {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 500;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      backdrop-filter: blur(5px);
-    }
-    
-    .sound-toggle {
-      position: absolute;
-      bottom: 16px;
-      right: 16px;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 20;
-      cursor: pointer;
-      backdrop-filter: blur(5px);
-      transition: var(--transition);
-    }
-    
-    .sound-toggle:hover {
-      background: rgba(0, 0, 0, 0.9);
-      transform: scale(1.1);
-    }
-    
-    .guide-text {
-      text-align: center;
-      color: #64748b;
-      margin-top: 12px;
-      font-size: 14px;
-      animation: fadeIn 1s;
-    }
-    
-    .logo {
-      margin-bottom: 16px;
-      font-weight: 700;
-      color: var(--primary-color);
-      font-size: 24px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .logo i {
-      font-size: 28px;
-    }
-    
-    @media (max-width: 480px) {
-      .scanner-container {
-        height: 340px;
-      }
-      
-      .header h1 {
-        font-size: 24px;
-      }
-      
-      .header p {
-        font-size: 14px;
-      }
-      
-      .btn {
-        padding: 12px 18px;
-        font-size: 15px;
-      }
-      
-      .scan-frame {
-        height: 180px;
-      }
-      
-      .search-input, .search-btn {
-        padding: 14px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحميل تطبيق ELGPRO</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 500px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 8px 20px rgba(26, 115, 232, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .app-icon::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(45deg);
+        }
+        
+        .app-icon-text {
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            position: relative;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-icon-pro {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: #FFA726;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+        
+        h1 {
+            color: #1a73e8;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 25px;
+            background-color: #1a73e8;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.3);
+        }
+        
+        .download-btn:hover {
+            background-color: #0d47a1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(26, 115, 232, 0.4);
+        }
+        
+        .download-btn i {
+            margin-left: 10px;
+            font-size: 24px;
+        }
+        
+        .features {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .feature {
+            flex: 1;
+            min-width: 120px;
+            margin: 10px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+        }
+        
+        .feature i {
+            display: block;
+            font-size: 24px;
+            color: #1a73e8;
+            margin-bottom: 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-  <div class="loading" id="loading">
-    <div class="spinner"></div>
-    <p>جاري تحميل الماسح الضوئي...</p>
-  </div>
-
-  <div class="header">
-    <div class="logo">
-      <i class="fas fa-qrcode"></i>
-      <span>الجندي برو</span>
+    <div class="container">
+        <div class="app-icon">
+            <div class="app-icon-text">E</div>
+            <div class="app-icon-pro">PRO</div>
+        </div>
+        
+        <h1>تطبيق ELGPRO</h1>
+        <p>تطبيق متكامل لتحسين إنتاجيتك وإدارة مهامك اليومية بكل كفاءة وسهولة</p>
+        
+        <div class="features">
+            <div class="feature">
+                <i class="fas fa-bolt"></i>
+                <span>سريع وسهل</span>
+            </div>
+            <div class="feature">
+                <i class="fas fa-shield-alt"></i>
+                <span>آمن تماماً</span>
+            </div>
+            <div class="feature">
+                <i class="fas fa-star"></i>
+                <span>مميزات فريدة</span>
+            </div>
+        </div>
+        
+        <a href="https://www.mediafire.com/file/fr892df3cl3nkz0/app-release.apk/file" class="download-btn" target="_blank">
+            تحميل التطبيق
+            <i class="fas fa-download"></i>
+        </a>
     </div>
-    <h1>قارئ الباركود الذكي</h1>
-    <p>امسح باركود المنتج للوصول إلى تفاصيله</p>
-  </div>
-
-  <div class="scanner-container">
-    <div id="reader"></div>
-    <div class="scanner-overlay">
-      <div class="scan-frame">
-        <div class="corner corner-tl"></div>
-        <div class="corner corner-tr"></div>
-        <div class="corner corner-bl"></div>
-        <div class="corner corner-br"></div>
-        <div class="scan-line"></div>
-      </div>
-    </div>
-    <div class="camera-feedback">
-      <i class="fas fa-camera"></i>
-      <span id="cameraFeedback">الكاميرا الخلفية</span>
-    </div>
-    <div class="sound-toggle" id="soundToggle">
-      <i class="fas fa-volume-up"></i>
-    </div>
-  </div>
-
-  <div class="guide-text">
-    ضع الباركود داخل الإطار لمسحه تلقائياً
-  </div>
-
-  <div class="controls">
-    <button class="btn btn-primary" onclick="toggleFlash()">
-      <i class="fas fa-lightbulb" id="flash-icon"></i>
-      <span id="flash-text">تشغيل الفلاش</span>
-    </button>
-    <button class="btn btn-warning" onclick="switchCamera()">
-      <i class="fas fa-camera-retro" id="camera-icon"></i>
-      <span id="camera-text">الكاميرا الأمامية</span>
-    </button>
-  </div>
-
-  <div class="manual-search">
-    <input type="text" class="search-input" id="manualInput" placeholder="أدخل رقم الباركود يدوياً" inputmode="numeric">
-    <button class="search-btn" onclick="searchProduct()">
-      <i class="fas fa-search"></i>
-      <span>بحث عن المنتج</span>
-    </button>
-  </div>
-
-  <div id="result"></div>
-
-  <audio id="scanSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
-
-  <script>
-    const elgendyBaseUrl = "https://elgendypro.com/ar/product/all/";
-    let html5QrCode;
-    let currentCameraId;
-    let flashEnabled = false;
-    let backCamera = true;
-    let scanAnimation;
-    let currentStream;
-    let lastScanTime = 0;
-    const SCAN_COOLDOWN = 1500;
-    let soundEnabled = true;
-
-    // تهيئة الماسح عند تحميل الصفحة
-    document.addEventListener('DOMContentLoaded', function() {
-      initScanner();
-      
-      // إضافة إمكانية البحث بالضغط على زر Enter
-      document.getElementById('manualInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          searchProduct();
-        }
-      });
-      
-      // التحكم في الصوت
-      document.getElementById('soundToggle').addEventListener('click', toggleSound);
-    });
-
-    function toggleSound() {
-      soundEnabled = !soundEnabled;
-      const soundIcon = document.querySelector('#soundToggle i');
-      soundIcon.className = soundEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
-      
-      // تغيير لون أيقونة الصوت للإشارة إلى الحالة
-      soundIcon.style.color = soundEnabled ? '#fff' : '#ccc';
-    }
-
-    async function initScanner() {
-      try {
-        html5QrCode = new Html5Qrcode("reader");
-        await startBackCamera();
-        document.getElementById('loading').style.display = 'none';
-        updateCameraFeedback();
-      } catch (error) {
-        console.error("خطأ في التهيئة:", error);
-        document.getElementById('loading').querySelector('p').textContent = 
-          "حدث خطأ في تحميل الماسح. يرجى التأكد من السماح باستخدام الكاميرا.";
-        
-        // عرض خيارات بديلة إذا فشل تحميل الماسح
-        setTimeout(() => {
-          document.getElementById('loading').style.display = 'none';
-          document.getElementById('manualInput').focus();
-        }, 3000);
-      }
-    }
-
-    async function startBackCamera() {
-      try {
-        const devices = await Html5Qrcode.getCameras();
-        if (devices && devices.length) {
-          // البحث عن الكاميرا الخلفية أولاً
-          const backCameraDevice = findBackCamera(devices);
-          currentCameraId = backCameraDevice ? backCameraDevice.id : devices[0].id;
-          
-          // إعدادات الكاميرا المحسنة
-          const qrConfig = {
-            fps: 20,
-            qrbox: (width, height) => {
-              // جعل إطار المسح يتناسب مع نسبة الكاميرا
-              const minDimension = Math.min(width, height);
-              const size = Math.floor(minDimension * 1.);
-              return {
-                width: size,
-                height: size * .8 // نسبة الطول إلى العرض للإطار
-              };
-            },
-            rememberLastUsedCamera: true,
-            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-            videoConstraints: {
-              facingMode: { exact: "environment" }, // استخدام exact بدلاً من ideal
-              width: { ideal: 1920 },
-              height: { ideal: 1080 }
-            }
-          };
-          
-          await html5QrCode.start(
-            currentCameraId,
-            qrConfig,
-            onScanSuccess,
-            () => console.log("جاري المسح...")
-          ).then(() => {
-            currentStream = html5Qrcode.getRunningTrackCapabilities();
-            updateCameraFeedback();
-          });
-        } else {
-          showError("لا توجد كاميرا متاحة");
-          document.getElementById('manualInput').focus();
-        }
-      } catch (error) {
-        console.error("خطأ في تشغيل الكاميرا:", error);
-        showError("فشل في تشغيل الكاميرا. يرجى استخدام الإدخال اليدوي.");
-        document.getElementById('manualInput').focus();
-      }
-    }
-
-    function findBackCamera(devices) {
-      // تحسين اكتشاف الكاميرا الخلفية
-      const backCameras = devices.filter(device => {
-        const label = device.label.toLowerCase();
-        return label.includes("back") || 
-               label.includes("rear") || 
-               label.includes("environment") ||
-               label.includes("1") || 
-               label.includes("bck") ||
-               (device.label.includes("1") && devices.length > 1) ||
-               (device.label.includes("0") && devices.length === 1); // إذا كان هناك كاميرا واحدة فقط
-      });
-      
-      return backCameras.length > 0 ? backCameras[0] : null;
-    }
-
-    function findFrontCamera(devices) {
-      const frontCameras = devices.filter(device => {
-        const label = device.label.toLowerCase();
-        return label.includes("front") || 
-               label.includes("user") ||
-               label.includes("face") ||
-               (device.label.includes("0") && devices.length > 1) ||
-               (device.label.includes("2") && devices.length > 2) ||
-               (device.label.includes("1") && devices.length === 1); // إذا كان هناك كاميرا واحدة فقط
-      });
-      
-      return frontCameras.length > 0 ? frontCameras[0] : null;
-    }
-
-    function onScanSuccess(decodedText) {
-      const now = Date.now();
-      if (now - lastScanTime < SCAN_COOLDOWN) return; // منع المسح المتكرر السريع
-      lastScanTime = now;
-      
-      // تنظيف النص الممسوح
-      const cleanText = decodedText.trim();
-      if (!cleanText) return;
-      
-      // تشغيل صوت المسح الناجح
-      if (soundEnabled) {
-        const scanSound = document.getElementById('scanSound');
-        scanSound.currentTime = 0;
-        scanSound.play().catch(e => console.log("لا يمكن تشغيل الصوت:", e));
-      }
-      
-      const resultElement = document.getElementById('result');
-      resultElement.innerHTML = `
-        <i class="fas fa-check-circle" style="font-size: 24px; margin-bottom: 8px;"></i>
-        <div>تم مسح الباركود بنجاح</div>
-        <div style="font-size: 14px; margin-top: 8px; font-weight: 500;">${cleanText}</div>
-      `;
-      resultElement.style.display = 'block';
-      resultElement.style.backgroundColor = 'var(--success-color)';
-      resultElement.style.color = 'white';
-      
-      // إيقاف الماسح مؤقتاً أثناء التوجيه
-      html5QrCode.pause();
-      
-      // إيقاف مؤقت قبل التوجيه لرؤية النتيجة
-      clearTimeout(scanAnimation);
-      scanAnimation = setTimeout(() => {
-        window.location.href = elgendyBaseUrl + encodeURIComponent(cleanText);
-      }, 1000);
-    }
-
-    function searchProduct() {
-      const code = document.getElementById("manualInput").value.trim();
-      if (code) {
-        const resultElement = document.getElementById('result');
-        resultElement.innerHTML = `
-          <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 8px;"></i>
-          <div>جاري البحث عن المنتج...</div>
-        `;
-        resultElement.style.display = 'block';
-        resultElement.style.backgroundColor = 'var(--secondary-color)';
-        resultElement.style.color = 'white';
-        
-        setTimeout(() => {
-          window.location.href = elgendyBaseUrl + encodeURIComponent(code);
-        }, 300);
-      } else {
-        showError("الرجاء إدخال رقم الباركود");
-      }
-    }
-
-    async function toggleFlash() {
-      if (!html5QrCode || !currentCameraId) return;
-      
-      try {
-        flashEnabled = !flashEnabled;
-        const flashBtn = document.querySelector('.btn-primary');
-        const flashIcon = document.getElementById('flash-icon');
-        const flashText = document.getElementById('flash-text');
-        
-        if (flashEnabled) {
-          flashBtn.classList.add('active');
-          flashIcon.className = 'fas fa-lightbulb';
-          flashText.textContent = 'إيقاف الفلاش';
-        } else {
-          flashBtn.classList.remove('active');
-          flashIcon.className = 'fas fa-lightbulb';
-          flashText.textContent = 'تشغيل الفلاش';
-        }
-        
-        // تحسين التحكم في الفلاش
-        await html5QrCode.applyVideoConstraints({
-          advanced: [
-            {torch: flashEnabled},
-            {fillLightMode: flashEnabled ? "flash" : "off"}
-          ]
-        });
-      } catch (error) {
-        console.error("لا يدعم الفلاش:", error);
-        flashEnabled = false;
-        showError("هذا الجهاز لا يدعم خاصية الفلاش");
-      }
-    }
-
-    async function switchCamera() {
-      try {
-        // إظهار رسالة تحميل أثناء تبديل الكاميرات
-        const loading = document.getElementById('loading');
-        loading.style.display = 'flex';
-        loading.querySelector('p').textContent = 'جاري تبديل الكاميرا...';
-        
-        await stopScanner();
-        backCamera = !backCamera;
-        
-        if (backCamera) {
-          await startBackCamera();
-          document.getElementById('camera-text').textContent = 'الكاميرا الأمامية';
-        } else {
-          await startFrontCamera();
-          document.getElementById('camera-text').textContent = 'الكاميرا الخلفية';
-        }
-        
-        updateCameraFeedback();
-        loading.style.display = 'none';
-      } catch (error) {
-        console.error("خطأ في تبديل الكاميرا:", error);
-        showError("فشل في تبديل الكاميرا");
-        document.getElementById('loading').style.display = 'none';
-      }
-    }
-
-    async function startFrontCamera() {
-      try {
-        const devices = await Html5Qrcode.getCameras();
-        if (devices && devices.length) {
-          // البحث عن الكاميرا الأمامية
-          const frontCameraDevice = findFrontCamera(devices);
-          currentCameraId = frontCameraDevice ? frontCameraDevice.id : devices[0].id;
-          
-          const qrConfig = {
-            fps: 20,
-            qrbox: (width, height) => {
-              const minDimension = Math.min(width, height);
-              const size = Math.floor(minDimension * 0.7);
-              return {
-                width: size,
-                height: size * 0.6
-              };
-            },
-            rememberLastUsedCamera: true,
-            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-            videoConstraints: {
-              facingMode: { exact: "user" }, // استخدام exact بدلاً من ideal
-              width: { ideal: 1920 },
-              height: { ideal: 1080 }
-            }
-          };
-          
-          await html5QrCode.start(
-            currentCameraId,
-            qrConfig,
-            onScanSuccess,
-            () => console.log("جاري المسح...")
-          ).then(() => {
-            currentStream = html5Qrcode.getRunningTrackCapabilities();
-            updateCameraFeedback();
-          });
-        } else {
-          showError("لا توجد كاميرا متاحة");
-          document.getElementById('manualInput').focus();
-        }
-      } catch (error) {
-        console.error("خطأ في تشغيل الكاميرا الأمامية:", error);
-        throw error;
-      }
-    }
-
-    async function stopScanner() {
-      try {
-        if (html5QrCode && html5QrCode.isScanning) {
-          await html5QrCode.stop();
-          currentStream = null;
-        }
-      } catch (error) {
-        console.error("خطأ في إيقاف الماسح:", error);
-        throw error;
-      }
-    }
-
-    function updateCameraFeedback() {
-      const feedbackElement = document.getElementById('cameraFeedback');
-      if (backCamera) {
-        feedbackElement.innerHTML = '<i class="fas fa-camera"></i> <span>الكاميرا الخلفية</span>';
-      } else {
-        feedbackElement.innerHTML = '<i class="fas fa-mobile-alt"></i> <span>الكاميرا الأمامية</span>';
-      }
-    }
-
-    function showError(message) {
-      const resultElement = document.getElementById('result');
-      resultElement.innerHTML = `
-        <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 8px;"></i>
-        <div>${message}</div>
-      `;
-      resultElement.style.display = 'block';
-      resultElement.style.backgroundColor = 'var(--accent-color)';
-      resultElement.style.color = 'white';
-      
-      // إخفاء الرسالة بعد 1 ثواني
-      setTimeout(() => {
-        resultElement.style.display = 'none';
-      }, 3000);
-    }
-  </script>
 </body>
 </html>
