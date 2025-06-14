@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحميل تطبيق ELGPRO</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 500px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 8px 20px rgba(26, 115, 232, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .app-icon::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(45deg);
+        }
+        
+        .app-icon-text {
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            position: relative;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-icon-pro {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: #FFA726;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+        
+        h1 {
+            color: #1a73e8;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 25px;
+            background-color: #1a73e8;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.3);
+        }
+        
+        .download-btn:hover {
+            background-color: #0d47a1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(26, 115, 232, 0.4);
+        }
+        
+        .download-btn i {
+            margin-left: 10px;
+            font-size: 24px;
+        }
+        
+        .features {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .feature {
+            flex: 1;
+            min-width: 120px;
+            margin: 10px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+        }
+        
+        .feature i {
+            display: block;
+            font-size: 24px;
+            color: #1a73e8;
+            margin-bottom: 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="app-icon">
+            <div class="app-icon-text">E</div>
+            <div class="app-icon-pro">PRO</div>
+        </div>
+        
+        <h1>تطبيق ELGPRO</h1>
+        <p>تطبيق متكامل لتحسين إنتاجيتك وإدارة مهامك اليومية بكل كفاءة وسهولة</p>
+        
+        <div class="features">
+            <div class="feature">
+                <i class="fas fa-bolt"></i>
+                <span>سريع وسهل</span>
+            </div>
+            <div class="feature">
+                <i class="fas fa-shield-alt"></i>
+                <span>آمن تماماً</span>
+            </div>
+            <div class="feature">
+                <i class="fas fa-star"></i>
+                <span>مميزات فريدة</span>
+            </div>
+        </div>
+        
+        <a href="https://www.mediafire.com/file/fr892df3cl3nkz0/app-release.apk/file" class="download-btn" target="_blank">
+            تحميل التطبيق
+            <i class="fas fa-download"></i>
+        </a>
+    </div>
+</body>
+</html>
